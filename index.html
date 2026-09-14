@@ -155,9 +155,42 @@
   .chip .mini .ring{box-shadow:inset 0 0 0 .5px rgba(0,0,0,.12)}
   .chip .miss{font-size:11px;color:var(--muted);font-style:italic}
 
-  /* footer note */
-  .foot{max-width:1440px;margin:0 auto;padding:0 24px 32px;color:var(--muted);
-    font-size:12px;font-weight:300;letter-spacing:.3px}
+  /* mobile tweaks (desktop unchanged) */
+  @media(max-width:900px){
+    header{padding:18px 16px;gap:10px;align-items:flex-start}
+    header h1{font-size:24px}
+    main{padding:14px;gap:14px}
+    .panel{padding:16px}
+    .panel h2{font-size:18px}
+    .grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+    .square{padding:11px}
+    .square .label{font-size:12px}
+    .controls{gap:10px}
+    .plabel{display:none}
+    .pager .info{font-size:12px}
+  }
+  @media(max-width:560px){
+    header{flex-direction:row;flex-wrap:wrap;align-items:center}
+    header h1{font-size:21px;flex:1 1 100%}
+    header .row-actions{flex:1 1 auto;justify-content:flex-end}
+    .grid{grid-template-columns:repeat(auto-fill,minmax(46vw,1fr));gap:10px}
+    .modal{padding:20px}
+    .color-row{gap:8px}
+    .crgb{font-size:10px}
+    .stats{gap:10px}
+    #counter{flex:1 1 100%;font-size:13px}
+    .controls{width:100%;justify-content:space-between}
+    select.psize{padding:8px 10px;font-size:14px}
+    .btn.sm{padding:8px 11px;font-size:14px}
+    .toggle{width:50px;height:28px}
+    .toggle::after{width:22px;height:22px}
+    .toggle.on::after{left:26px}
+  }
+  /* tap targets: larger touch areas on small screens */
+  @media(hover:none) and (pointer:coarse){
+    .btn,.toggle,.square,.swatch{touch-action:manipulation}
+    .square:hover{transform:none;box-shadow:var(--shadow)}
+  }
 </style>
 </head>
 <body>
