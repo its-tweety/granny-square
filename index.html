@@ -84,8 +84,8 @@
   .btn.primary:hover{filter:brightness(1.05)}
   .btn.sm{padding:6px 11px;font-size:13px}
   .toggle{width:46px;height:24px;border-radius:24px;background:#d8cfbe;position:relative;
-    cursor:pointer;flex:none;transition:.18s;border:1px solid var(--line)}
-  .toggle.on{background:var(--ok);border-color:var(--ok)}
+    cursor:pointer;flex:none;transition:.18s;border:1px solid var(--line);--tc:#999}
+  .toggle.on{background:var(--tc);border-color:var(--tc)}
   .toggle::after{content:"";position:absolute;top:1px;left:1px;width:20px;height:20px;border-radius:50%;
     background:#fff;transition:.18s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
   .toggle.on::after{left:23px}
@@ -140,11 +140,9 @@
     opacity:0;transform:scale(.6);transition:.18s}
 
   /* Concentric granny square (fluid, scales to container) */
-  .granny{position:relative;width:100%;aspect-ratio:1/1;display:flex;
-    align-items:center;justify-content:center;margin:0 auto}
-  .granny .ring{aspect-ratio:1/1;align-self:center;justify-self:center}
-  .ring{position:relative;display:flex;align-items:center;justify-content:center;
-    box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
+  .granny{position:relative;width:100%;aspect-ratio:1/1;margin:0 auto}
+  .granny .ring{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    aspect-ratio:1/1;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
 
   /* pagination */
   .pager{display:flex;gap:10px;justify-content:center;align-items:center;margin-top:18px;flex-wrap:wrap}
@@ -279,7 +277,7 @@ const I18N = {
   it:{
     colors:"Colori", addColor:"+ Aggiungi colore", random:"Random",
     hint:"Il numero di giri equivale al numero di colori attivi. Disattiva un colore per ridurre i giri di uno: le combinazioni si ricalcolano, ma i granny square già completati restano salvati.",
-    fAll:"Tutte", fTodo:"Da fare", fDone:"Completati", perPage:"per pagina", pageSizeTitle:"Combinazioni per pagina",
+    fAll:"Tutti", fTodo:"Da fare", fDone:"Completati", perPage:"per pagina", pageSizeTitle:"Combinazioni per pagina",
     counter:(n,total,done)=>`<b>${n}</b> colori attivi → <b>${n}</b> giri · <b>${total}</b> combinazioni · <b>${done}</b> completate`,
     pageOf:(cur,pages,start,end,len)=>`${cur} / ${pages}  ·  pagina ${start}–${end} di ${len}`,
     doneLabel:"✓ Completato", markDone:"Segna completato",
@@ -498,7 +496,7 @@ function grannyHtml(perm, size){
   for(let k=n-1;k>=0;k--){
     const col=perm[k];
     const side = ((1 - k/n)*100).toFixed(2);
-    inner = `<div class="ring" style="width:${side}%;height:${side}%;background:${hex(col)}">${inner}</div>`;
+    inner = `<div class="ring" style="width:${side}%;background:${hex(col)}">${inner}</div>`;
   }
   return `<div class="granny" style="max-width:${size}px">${inner}</div>`;
 }
@@ -519,7 +517,7 @@ function renderColors(){
         <span class="crgb">${c.r}, ${c.g}, ${c.b}</span>
       </div>
       <div class="row-actions">
-        <div class="toggle ${c.enabled?'on':''}" data-i="${idx}" data-act="toggle" title="${t("toggleTitle")}"></div>
+        <div class="toggle ${c.enabled?'on':''}" data-i="${idx}" data-act="toggle" title="${t("toggleTitle")}" style="--tc:${hex(c)}"></div>
         <button class="btn sm" data-i="${idx}" data-act="del" title="${t("delTitle")}">✕</button>
       </div>`;
     list.appendChild(row);
@@ -636,35 +634,37 @@ function renderCombos(){
 
 // ---------- events ----------
 document.getElementById("colorList").addEventListener("click",e=>{
-  const t=e.target.closest("[data-act]");
-  if(!t) return;
-  const i=+t.dataset.i;
-  const act=t.dataset.act;
-  if(act==="toggle"){
+  const el=e.target.closest("[data-act]");
+  if(!el) return;
+  const i=+el.dataset.i;
+  const act=el.dataset.act;
+  if(act=="toggle"){
     state.colors[i].enabled=!state.colors[i].enabled;
     save(); renderColors(); state.page=0; renderCombos();
-  } else if(act==="del"){
+  } else if(act=="del"){
     if(!confirm(t("delColor"))) return;
     state.colors.splice(i,1);
     save(); renderColors(); state.page=0; renderCombos();
   }
 });
+
 document.getElementById("colorList").addEventListener("input",e=>{
-  const t=e.target.closest("[data-act]");
-  if(!t) return;
-  const i=+t.dataset.i;
-  if(t.dataset.act==="color"){
-    const {r,g,b}=fromHex(t.value);
+  const el=e.target.closest("[data-act]");
+  if(!el) return;
+  const i=+el.dataset.i;
+  if(el.dataset.act=="color"){
+    const {r,g,b}=fromHex(el.value);
     Object.assign(state.colors[i],{r,g,b});
-    t.closest(".swatch").style.background=t.value;
-    const rgb=t.closest(".color-row").querySelector(".crgb");
-    rgb.textContent=`${r},${g},${b}`;
+    el.closest(".swatch").style.background=el.value;
+    const rgb=el.closest(".color-row").querySelector(".crgb");
+    rgb.textContent=`${r}, ${g}, ${b}`;
     save(); renderCombos();
-  } else if(t.dataset.act==="name"){
-    state.colors[i].name=t.value;
+  } else if(el.dataset.act=="name"){
+    state.colors[i].name=el.value;
     save();
   }
 });
+
 document.getElementById("addBtn").addEventListener("click",()=>{
   state.colors.push({id:nextId(),name:t("newColor",(state.colors.length+1)),r:130,g:120,b:110,enabled:true});
   save(); renderColors(); state.page=0; renderCombos();
