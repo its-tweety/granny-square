@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Granny Square – Combinazioni Colori</title>
+<style>
+  :root{
+    --bg:#faf8f5; --panel:#ffffff; --ink:#2b2b2b; --muted:#8a8a8a;
+    --line:#e6e1d8; --accent:#c8553d; --accent-ink:#fff;
+    --ok:#3a7d44; --shadow:0 1px 3px rgba(0,0,0,.08);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.4}
+  header{padding:18px 22px;background:var(--panel);border-bottom:1px solid var(--line);box-shadow:var(--shadow);
+    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  header h1{margin:0;font-size:20px;font-weight:600}
+  header .sub{color:var(--muted);font-size:13px}
+  main{display:grid;grid-template-columns:320px 1fr;gap:18px;padding:18px;max-width:1400px;margin:0 auto}
+  @media(max-width:860px){main{grid-template-columns:1fr}}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;box-shadow:var(--shadow)}
+  .panel h2{margin:0 0 12px;font-size:15px;font-weight:600}
+
+  /* Color editor */
+  .color-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dashed var(--line)}
+  .color-row:last-child{border-bottom:none}
+  .swatch{width:34px;height:34px;border-radius:6px;border:1px solid var(--line);flex:none;cursor:pointer;position:relative;overflow:hidden}
+  .swatch input[type=color]{position:absolute;inset:0;opacity:0;cursor:pointer;border:none;padding:0}
+  .cname{flex:1;min-width:0;border:none;background:transparent;font-size:14px;color:var(--ink);border-bottom:1px solid transparent}
+  .cname:focus{outline:none;border-bottom-color:var(--accent)}
+  .crgb{font-size:11px;color:var(--muted);font-family:monospace;width:78px;text-align:center}
+  .btn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:7px;padding:6px 10px;cursor:pointer;font-size:13px}
+  .btn:hover{background:#f3efe9}
+  .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+  .btn.primary:hover{background:#b04630}
+  .btn.sm{padding:4px 8px;font-size:12px}
+  .toggle{width:42px;height:22px;border-radius:22px;background:#d8d2c8;position:relative;cursor:pointer;flex:none;transition:.15s}
+  .toggle.on{background:var(--ok)}
+  .toggle::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.15s}
+  .toggle.on::after{left:22px}
+  .row-actions{display:flex;gap:6px;align-items:center}
+  .add-color{margin-top:12px}
+
+  /* Stats / filters */
+  .stats{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+  .filters{display:flex;gap:6px;flex-wrap:wrap}
+  .filters .btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .hint{font-size:12px;color:var(--muted);margin-top:8px}
+
+  /* Combinations grid */
+  #comboWrap{margin-top:14px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+  .square{border:1px solid var(--line);border-radius:8px;padding:8px;background:#fff;cursor:pointer;transition:.12s;position:relative}
+  .square:hover{box-shadow:var(--shadow);transform:translateY(-1px)}
+  .square.done{border-color:var(--ok);background:#f1f8f1}
+  .square.done .badge{display:inline-flex}
+  .rings{display:flex;flex-direction:column;border-radius:6px;overflow:hidden;border:1px solid var(--line)}
+  .ring{height:18px;display:flex;align-items:center;justify-content:center;font-size:9px;color:rgba(0,0,0,.55);font-weight:600}
+  .ring span{background:rgba(255,255,255,.7);border-radius:3px;padding:0 3px}
+  .square .label{font-size:11px;margin-top:6px;color:var(--muted);text-align:center}
+  .square .badge{display:none;position:absolute;top:4px;right:4px;font-size:11px;color:var(--ok)}
+  .center-dot{width:8px;height:8px;border-radius:50%;background:#fff;border:1px solid var(--line);margin:2px auto}
+
+  /* pagination */
+  .pager{display:flex;gap:8px;justify-content:center;align-items:center;margin-top:14px;flex-wrap:wrap}
+  .empty{text-align:center;color:var(--muted);padding:40px 10px}
+
+  /* completed section */
+  #completedSec{margin-top:22px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:20px;padding:4px 10px 4px 4px;background:#fff;font-size:12px}
+  .chip .dots{display:flex;gap:2px}
+  .chip .dots i{width:12px;height:12px;border-radius:50%;display:block;border:1px solid rgba(0,0,0,.15)}
+  .chip .x{cursor:pointer;color:var(--muted);font-weight:700}
+  .chip .x:hover{color:var(--accent)}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>🧶 Granny Square – Combinazioni Colori</h1>
+    <div class="sub">Ogni giro un colore diverso · permutazioni dei colori attivi</div>
+  </div>
+  <div class="row-actions">
+    <button class="btn" id="resetBtn" title="Azzera tutto (colori e completati)">Azzera dati</button>
+  </div>
+</header>
+
+<main>
+  <section class="panel" id="leftPanel">
+    <h2>Colori</h2>
+    <div id="colorList"></div>
+    <div class="add-color row-actions" style="gap:8px">
+      <button class="btn primary sm" id="addBtn">+ Aggiungi colore</button>
+      <button class="btn sm" id="randomBtn">Random</button>
+    </div>
+    <p class="hint">Numero di giri = numero di colori attivi. Disattiva un colore per ridurre i giri di uno: le combinazioni si ricalcolano, ma i granny square già completati restano salvati.</p>
+  </section>
+
+  <section class="panel">
+    <div class="stats">
+      <div id="counter" class="sub"></div>
+      <div class="filters">
+        <button class="btn sm filter" data-f="all">Tutte</button>
+        <button class="btn sm filter" data-f="todo">Da fare</button>
+        <button class="btn sm filter" data-f="done">Completate</button>
+      </div>
+    </div>
+    <div id="comboWrap">
+      <div class="grid" id="grid"></div>
+      <div class="pager" id="pager"></div>
+    </div>
+
+    <div id="completedSec">
+      <h2 style="margin-top:18px">Completati salvati (anche con colori disattivati)</h2>
+      <div id="completedChips" class="chips"></div>
+    </div>
+  </section>
+</main>
+
+<script>
+"use strict";
+const STORE_KEY = "grannySquares.v1";
+const PAGE_SIZE = 120;
+const RING_HEIGHT = 18;
+
+const state = {
+  colors: [],      // [{id,name,r,g,b,enabled}]
+  done: {},        // key -> true  (key = ordered ids joined by "|")
+  filter: "all",
+  page: 0,
+};
+
+let uid = 1;
+function nextId(){ return "c"+(uid++); }
+
+// ---------- persistence ----------
+function load(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(raw){
+      const d = JSON.parse(raw);
+      state.colors = d.colors || [];
+      state.done = d.done || {};
+      uid = d.uid || (state.colors.reduce((m,c)=>Math.max(m,parseInt((c.id||"c1").slice(1))||1),1)+1);
+      return;
+    }
+  }catch(e){ console.warn("load failed", e); }
+  seed();
+}
+function save(){
+  localStorage.setItem(STORE_KEY, JSON.stringify({colors:state.colors, done:state.done, uid}));
+}
+function seed(){
+  const palette = [
+    {name:"Rosso",   rgb:[200,60,50]},
+    {name:"Arancio", rgb:[235,150,40]},
+    {name:"Giallo",  rgb:[245,210,60]},
+    {name:"Verde",   rgb:[90,170,80]},
+    {name:"Azzurro", rgb:[90,160,210]},
+    {name:"Viola",   rgb:[150,90,190]},
+  ];
+  state.colors = palette.map(p=>({id:nextId(),name:p.name,r:p.rgb[0],g:p.rgb[1],b:p.rgb[2],enabled:true}));
+  save();
+}
+
+// ---------- helpers ----------
+const active = ()=> state.colors.filter(c=>c.enabled);
+const hex = c=>"#"+[c.r,c.g,c.b].map(v=>v.toString(16).padStart(2,"0")).join("");
+const fromHex = h=>{ h=h.replace("#",""); return {r:parseInt(h.slice(0,2),16),g:parseInt(h.slice(2,4),16),b:parseInt(h.slice(4,6),16)}; };
+const lum = c=>(0.299*c.r+0.587*c.g+0.114*c.b);
+const contrast = c=> lum(c)>140 ? "#000" : "#fff";
+const keyOf = arr=> arr.map(c=>c.id).join("|");
+
+// ---------- permutations (Heap's algorithm) ----------
+function permutations(arr){
+  const out=[];
+  const n=arr.length;
+  if(n===0) return [[]];
+  if(n>10){ // safety cap
+    return null;
+  }
+  const a=arr.slice();
+  const c=new Array(n).fill(0);
+  out.push(a.slice());
+  let i=1;
+  while(i<n){
+    if(c[i]<i){
+      if(i%2===0){ [a[0],a[i]]=[a[i],a[0]]; } else { [a[c[i]],a[i]]=[a[i],a[c[i]]]; }
+      out.push(a.slice());
+      c[i]++; i=1;
+    } else { c[i]=0; i++; }
+    if(out.length>500000){ return out; } // hard guard
+  }
+  return out;
+}
+
+// ---------- render colors ----------
+function renderColors(){
+  const list=document.getElementById("colorList");
+  list.innerHTML="";
+  state.colors.forEach((c,idx)=>{
+    const row=document.createElement("div");
+    row.className="color-row";
+    row.innerHTML=`
+      <label class="swatch" style="background:${hex(c)}">
+        <input type="color" value="${hex(c)}" data-i="${idx}" data-act="color">
+      </label>
+      <input class="cname" value="${c.name.replace(/"/g,'&quot;')}" data-i="${idx}" data-act="name" placeholder="Nome">
+      <span class="crgb">${c.r},${c.g},${c.b}</span>
+      <div class="row-actions">
+        <div class="toggle ${c.enabled?'on':''}" data-i="${idx}" data-act="toggle" title="Attiva/disattiva"></div>
+        <button class="btn sm" data-i="${idx}" data-act="del" title="Elimina">✕</button>
+      </div>`;
+    list.appendChild(row);
+  });
+}
+
+// ---------- render combinations ----------
+let allCombos=null;
+function renderCombos(){
+  const grid=document.getElementById("grid");
+  const pager=document.getElementById("pager");
+  const counter=document.getElementById("counter");
+  const A=active();
+  const n=A.length;
+
+  if(n===0){
+    allCombos=null;
+    grid.innerHTML=`<div class="empty">Nessun colore attivo. Attiva almeno un colore per vedere le combinazioni.</div>`;
+    pager.innerHTML="";
+    counter.textContent="";
+    renderCompleted();
+    return;
+  }
+
+  allCombos=permutations(A);
+  if(allCombos===null){
+    grid.innerHTML=`<div class="empty">Troppi colori attivi (max 10) per generare tutte le permutazioni.</div>`;
+    pager.innerHTML=""; counter.textContent="";
+    renderCompleted(); return;
+  }
+
+  let combos=allCombos;
+  if(state.filter==="done") combos=combos.filter(p=>state.done[keyOf(p)]);
+  else if(state.filter==="todo") combos=combos.filter(p=>!state.done[keyOf(p)]);
+
+  const total=allCombos.length;
+  const doneCount=allCombos.filter(p=>state.done[keyOf(p)]).length;
+  counter.textContent=`${n} colori attivi → ${n} giri · ${total.toLocaleString("it-IT")} combinazioni · ${doneCount} completate`;
+
+  const pages=Math.ceil(combos.length/PAGE_SIZE)||1;
+  if(state.page>=pages) state.page=pages-1;
+  if(state.page<0) state.page=0;
+  const start=state.page*PAGE_SIZE;
+  const slice=combos.slice(start,start+PAGE_SIZE);
+
+  grid.innerHTML="";
+  const frag=document.createDocumentFragment();
+  slice.forEach(perm=>{
+    const key=keyOf(perm);
+    const isDone=!!state.done[key];
+    const sq=document.createElement("div");
+    sq.className="square"+(isDone?" done":"");
+    sq.dataset.key=key;
+
+    // rings: render outer-to-inner; first element is outermost ring
+    let ringsHtml="";
+    perm.forEach((col,ri)=>{
+      ringsHtml+=`<div class="ring" style="background:${hex(col)};color:${contrast(col)}"><span>${ri+1}</span></div>`;
+    });
+    sq.innerHTML=`
+      <div class="rings">${ringsHtml}<div class="center-dot"></div></div>
+      <div class="label">${isDone?"✓ Completato":"Segna completato"}</div>
+      <div class="badge">✓</div>`;
+    sq.addEventListener("click",()=>{
+      if(state.done[key]) delete state.done[key]; else state.done[key]=true;
+      save();
+      renderCombos();
+    });
+    frag.appendChild(sq);
+  });
+  grid.appendChild(frag);
+
+  // pager
+  pager.innerHTML="";
+  if(pages>1){
+    const prev=document.createElement("button");
+    prev.className="btn sm"; prev.textContent="‹"; prev.disabled=state.page===0;
+    prev.onclick=()=>{state.page--;renderCombos();};
+    pager.appendChild(prev);
+    const info=document.createElement("span");
+    info.style.fontSize="12px"; info.style.color="var(--muted)";
+    info.textContent=`${state.page+1} / ${pages}  (pagina ${start+1}–${Math.min(start+PAGE_SIZE,combos.length)} di ${combos.length})`;
+    pager.appendChild(info);
+    const next=document.createElement("button");
+    next.className="btn sm"; next.textContent="›"; next.disabled=state.page===pages-1;
+    next.onclick=()=>{state.page++;renderCombos();};
+    pager.appendChild(next);
+  }
+
+  renderCompleted();
+}
+
+// ---------- completed chips (all saved, regardless of disabled) ----------
+function renderCompleted(){
+  const wrap=document.getElementById("completedChips");
+  const keys=Object.keys(state.done);
+  if(keys.length===0){
+    wrap.innerHTML=`<span style="color:var(--muted);font-size:12px">Nessun granny square completato ancora.</span>`;
+    return;
+  }
+  const byId=new Map(state.colors.map(c=>[c.id,c]));
+  wrap.innerHTML="";
+  const frag=document.createDocumentFragment();
+  keys.forEach(key=>{
+    const ids=key.split("|");
+    const cols=ids.map(id=>byId.get(id)).filter(Boolean);
+    const missing=ids.length-cols.length;
+    const chip=document.createElement("div");
+    chip.className="chip";
+    let dots="";
+    cols.forEach(c=>{ dots+=`<i style="background:${hex(c)}" title="${c.name}"></i>`; });
+    if(missing) dots+=`<span style="font-size:10px;color:var(--muted)">+${missing} disatt.</span>`;
+    chip.innerHTML=`<span class="dots">${dots}</span>
+      <span class="x" data-key="${key}" title="Rimuovi dai completati">✕</span>`;
+    frag.appendChild(chip);
+  });
+  wrap.appendChild(frag);
+}
+
+// ---------- events ----------
+document.getElementById("colorList").addEventListener("click",e=>{
+  const t=e.target.closest("[data-act]");
+  if(!t) return;
+  const i=+t.dataset.i;
+  const act=t.dataset.act;
+  if(act==="toggle"){
+    state.colors[i].enabled=!state.colors[i].enabled;
+    save(); renderColors(); state.page=0; renderCombos();
+  } else if(act==="del"){
+    if(!confirm("Eliminare questo colore? I granny square già completati con questo colore restano salvati.")) return;
+    state.colors.splice(i,1);
+    save(); renderColors(); state.page=0; renderCombos();
+  }
+});
+document.getElementById("colorList").addEventListener("input",e=>{
+  const t=e.target.closest("[data-act]");
+  if(!t) return;
+  const i=+t.dataset.i;
+  if(t.dataset.act==="color"){
+    const {r,g,b}=fromHex(t.value);
+    Object.assign(state.colors[i],{r,g,b});
+    t.closest(".swatch").style.background=t.value;
+    const rgb=t.closest(".color-row").querySelector(".crgb");
+    rgb.textContent=`${r},${g},${b}`;
+    save(); renderCombos();
+  } else if(t.dataset.act==="name"){
+    state.colors[i].name=t.value;
+    save();
+  }
+});
+document.getElementById("addBtn").addEventListener("click",()=>{
+  state.colors.push({id:nextId(),name:"Colore "+(state.colors.length+1),r:120,g:120,b:120,enabled:true});
+  save(); renderColors(); state.page=0; renderCombos();
+});
+document.getElementById("randomBtn").addEventListener("click",()=>{
+  if(state.colors.length===0) return;
+  const last=state.colors[state.colors.length-1];
+  last.r=Math.floor(Math.random()*256); last.g=Math.floor(Math.random()*256); last.b=Math.floor(Math.random()*256);
+  save(); renderColors(); renderCombos();
+});
+document.getElementById("completedChips").addEventListener("click",e=>{
+  const x=e.target.closest(".x");
+  if(!x) return;
+  delete state.done[x.dataset.key];
+  save(); renderCombos();
+});
+document.querySelectorAll(".filter").forEach(b=>{
+  b.addEventListener("click",()=>{
+    state.filter=b.dataset.f;
+    document.querySelectorAll(".filter").forEach(x=>x.classList.toggle("active",x===b));
+    state.page=0; renderCombos();
+  });
+});
+document.getElementById("resetBtn").addEventListener("click",()=>{
+  if(!confirm("Azzerare TUTTO (colori e completati)?")) return;
+  localStorage.removeItem(STORE_KEY);
+  state.colors=[]; state.done={}; uid=1; seed();
+  state.page=0; state.filter="all";
+  document.querySelectorAll(".filter").forEach(x=>x.classList.toggle("active",x.dataset.f==="all"));
+  renderColors(); renderCombos();
+});
+
+// ---------- init ----------
+load();
+document.querySelectorAll(".filter").forEach(x=>x.classList.toggle("active",x.dataset.f==="all"));
+renderColors();
+renderCombos();
+</script>
+</body>
+</html>
