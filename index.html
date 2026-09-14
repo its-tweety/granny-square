@@ -137,15 +137,14 @@
   .square:hover{box-shadow:var(--shadow-lift);transform:translateY(-2px);border-color:var(--accent-soft)}
   .square.done{border-color:var(--ok);background:linear-gradient(180deg,var(--ok-soft),var(--panel))}
   .square.done .badge{opacity:1;transform:scale(1)}
-  .square .label{font-size:13px;margin-top:10px;color:var(--muted);text-align:center;font-style:italic;font-weight:300}
-  .square.done .label{color:var(--ok);font-weight:500}
   .square .badge{position:absolute;top:10px;right:10px;font-size:15px;color:var(--ok);
     opacity:0;transform:scale(.6);transition:.18s}
 
   /* Concentric granny square (fluid, scales to container) */
-  .granny{position:relative;width:100%;aspect-ratio:1/1;margin:0 auto}
+  .granny{position:relative;width:100%;aspect-ratio:1/1;margin:0 auto;--gr:14px}
   .granny .ring{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-    aspect-ratio:1/1;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
+    aspect-ratio:1/1;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06);
+    border-radius:calc(var(--gr) * (1 - var(--k,0)))}
 
   /* pagination */
   .pager{display:flex;gap:10px;justify-content:center;align-items:center;margin-top:18px;flex-wrap:wrap}
@@ -161,7 +160,6 @@
     .panel h2{font-size:18px}
     .grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
     .square{padding:11px}
-    .square .label{font-size:12px}
     .controls{gap:10px}
     .plabel{display:none}
     .pager .info{font-size:12px}
@@ -494,12 +492,14 @@ function permutations(arr){
 function grannyHtml(perm, size){
   const n=perm.length;
   if(n===0) return "";
+  const gr = Math.min(14, size*0.09);
   let rings="";
   for(let k=0;k<n;k++){
     const side = (100 - (k*100/n)).toFixed(3);
-    rings += `<div class="ring" style="width:${side}%;background:${hex(perm[k])}"></div>`;
+    const kk = (k/n).toFixed(3);
+    rings += `<div class="ring" style="width:${side}%;background:${hex(perm[k])};--k:${kk}"></div>`;
   }
-  return `<div class="granny" style="max-width:${size}px">${rings}</div>`;
+  return `<div class="granny" style="max-width:${size}px;--gr:${gr}px">${rings}</div>`;
 }
 
 // ---------- render colors ----------
@@ -604,7 +604,6 @@ function renderCombos(){
     sq.dataset.key=key;
     sq.innerHTML=
       grannyHtml(perm, size) +
-      `<div class="label">${isDone?t("doneLabel"):t("markDone")}</div>` +
       `<div class="badge">✓</div>`;
     sq.addEventListener("click",()=>{
       if(state.done[key]) delete state.done[key]; else state.done[key]=true;
