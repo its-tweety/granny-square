@@ -38,8 +38,11 @@
     display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
   }
   header h1{margin:0;font-size:22px;font-weight:500;letter-spacing:.2px;
-    font-variation-settings:"opsz" 40,"SOFT" 80;font-style:italic;line-height:1}
+    font-variation-settings:"opsz" 40,"SOFT" 80;font-style:italic;line-height:1;
+    display:flex;align-items:center;gap:10px}
   header h1 .amp{color:var(--accent);font-style:italic}
+  header h1 .logo{width:24px;height:24px;flex:none;color:var(--accent)}
+  header h1 .logo svg{display:block;width:100%;height:100%}
   header .row-actions{display:flex;gap:8px;align-items:center}
   .cloud-dot{width:9px;height:9px;border-radius:50%;background:#cfc4b0;border:1px solid var(--line);display:inline-block;flex:none}
   .cloud-dot.on{background:var(--ok);border-color:var(--ok)}
@@ -194,7 +197,7 @@
 <body>
 <header>
   <div>
-    <h1>Granny Square</h1>
+    <h1><span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21c2.5-3 5.5-4.5 9-4.5"/><path d="M12 16.5C12 10 15 4.5 21 3"/><circle cx="3" cy="21" r="1.4" fill="currentColor" stroke="none"/></svg></span> Granny Square</h1>
   </div>
   <div class="row-actions">
     <div class="lang-switch" id="langSwitch" role="group" aria-label="Language">
