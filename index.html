@@ -64,8 +64,8 @@
   .cname{flex:1;min-width:0;border:none;background:transparent;font-family:inherit;font-size:17px;
     color:var(--ink);border-bottom:1px solid transparent;font-weight:400;letter-spacing:.2px}
   .cname:focus{outline:none;border-bottom-color:var(--accent)}
-  .crgb{font-size:11px;color:var(--muted);width:84px;text-align:center;letter-spacing:.5px;
-    font-feature-settings:"tnum"}
+  .cname-wrap{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+  .crgb{font-size:11px;color:var(--muted);letter-spacing:.5px;font-feature-settings:"tnum"}
   .btn{border:1px solid var(--line);background:var(--panel);color:var(--ink);
     border-radius:10px;padding:8px 14px;cursor:pointer;font-family:inherit;font-size:14px;
     font-weight:400;letter-spacing:.2px;transition:.15s}
@@ -291,8 +291,10 @@ function renderColors(){
       <label class="swatch" style="background:${hex(c)}">
         <input type="color" value="${hex(c)}" data-i="${idx}" data-act="color">
       </label>
-      <input class="cname" value="${c.name.replace(/"/g,'&quot;')}" data-i="${idx}" data-act="name" placeholder="Nome">
-      <span class="crgb">${c.r},${c.g},${c.b}</span>
+      <div class="cname-wrap">
+        <input class="cname" value="${c.name.replace(/"/g,'&quot;')}" data-i="${idx}" data-act="name" placeholder="Nome">
+        <span class="crgb">${c.r}, ${c.g}, ${c.b}</span>
+      </div>
       <div class="row-actions">
         <div class="toggle ${c.enabled?'on':''}" data-i="${idx}" data-act="toggle" title="Attiva/disattiva"></div>
         <button class="btn sm" data-i="${idx}" data-act="del" title="Elimina">✕</button>
