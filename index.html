@@ -151,17 +151,6 @@
   .pager .info{font-size:13px;color:var(--muted);font-weight:300;letter-spacing:.2px}
   .empty{text-align:center;color:var(--muted);padding:48px 10px;font-style:italic;font-weight:300}
 
-  /* completed section */
-  #completedSec{margin-top:28px;border-top:1px solid var(--line-soft);padding-top:20px}
-  .chips{display:flex;flex-wrap:wrap;gap:10px}
-  .chip{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:24px;
-    padding:6px 12px 6px 6px;background:var(--panel);box-shadow:var(--shadow);font-size:13px}
-  .chip:hover{border-color:var(--accent-soft)}
-  .chip .x{cursor:pointer;color:var(--muted);font-weight:400;font-size:15px;line-height:1}
-  .chip .x:hover{color:var(--accent)}
-  .chip .mini .ring{box-shadow:inset 0 0 0 .5px rgba(0,0,0,.12)}
-  .chip .miss{font-size:11px;color:var(--muted);font-style:italic}
-
   /* mobile tweaks (desktop unchanged) */
   @media(max-width:900px){
     header{padding:18px 16px;gap:10px;align-items:flex-start}
@@ -255,11 +244,6 @@
       <div class="grid" id="grid"></div>
       <div class="pager" id="pager"></div>
     </div>
-
-    <div id="completedSec">
-      <h2><span data-i18n="completedSaved"></span> <span class="count" data-i18n="evenDisabled"></span></h2>
-      <div id="completedChips" class="chips"></div>
-    </div>
   </section>
 </main>
 
@@ -295,15 +279,14 @@ const I18N = {
   it:{
     colors:"Colori", addColor:"+ Aggiungi colore", random:"Random",
     hint:"Il numero di giri equivale al numero di colori attivi. Disattiva un colore per ridurre i giri di uno: le combinazioni si ricalcolano, ma i granny square già completati restano salvati.",
-    fAll:"Tutte", fTodo:"Da fare", fDone:"Completate", perPage:"per pagina", pageSizeTitle:"Combinazioni per pagina",
+    fAll:"Tutte", fTodo:"Da fare", fDone:"Completati", perPage:"per pagina", pageSizeTitle:"Combinazioni per pagina",
     counter:(n,total,done)=>`<b>${n}</b> colori attivi → <b>${n}</b> giri · <b>${total}</b> combinazioni · <b>${done}</b> completate`,
     pageOf:(cur,pages,start,end,len)=>`${cur} / ${pages}  ·  pagina ${start}–${end} di ${len}`,
     doneLabel:"✓ Completato", markDone:"Segna completato",
     emptyActive:"Nessun colore attivo. Attiva almeno un colore per vedere le combinazioni.",
     emptyTooMany:"Troppi colori attivi (max 10) per generare tutte le permutazioni.",
-    completedSaved:"Completati salvati", evenDisabled:"anche con colori disattivati",
+    doneCount:"completati",
     noneCompleted:"Nessun granny square completato ancora.",
-    chipMiss:(n)=>`+${n} disatt.`, chipRemove:"Rimuovi dai completati",
     namePlaceholder:"Nome",
     toggleTitle:"Attiva/disattiva", delTitle:"Elimina", delColor:"Eliminare questo colore? I granny square già completati con questo colore restano salvati.",
     newColor:(n)=>"Colore "+n,
@@ -324,15 +307,14 @@ const I18N = {
   en:{
     colors:"Colors", addColor:"+ Add color", random:"Random",
     hint:"The number of rounds equals the number of active colors. Disable a colour to reduce the rounds by one: combinations are recalculated, but already completed granny squares stay saved.",
-    fAll:"All", fTodo:"To do", fDone:"Done", perPage:"per page", pageSizeTitle:"Combinations per page",
+    fAll:"All", fTodo:"To do", fDone:"Completed", perPage:"per page", pageSizeTitle:"Combinations per page",
     counter:(n,total,done)=>`<b>${n}</b> active colours → <b>${n}</b> rounds · <b>${total}</b> combinations · <b>${done}</b> completed`,
     pageOf:(cur,pages,start,end,len)=>`${cur} / ${pages}  ·  page ${start}–${end} of ${len}`,
     doneLabel:"✓ Completed", markDone:"Mark complete",
     emptyActive:"No active colour. Activate at least one colour to see combinations.",
     emptyTooMany:"Too many active colours (max 10) to generate all permutations.",
-    completedSaved:"Saved completed", evenDisabled:"even with disabled colours",
+    doneCount:"completed",
     noneCompleted:"No granny square completed yet.",
-    chipMiss:(n)=>`+${n} dis.`, chipRemove:"Remove from completed",
     namePlaceholder:"Name",
     toggleTitle:"Enable/disable", delTitle:"Delete", delColor:"Delete this colour? Already completed granny squares with this colour stay saved.",
     newColor:(n)=>"Colour "+n,
@@ -553,30 +535,57 @@ function renderCombos(){
   const A=active();
   const n=A.length;
 
-  if(n===0){
+  if(n===0 && state.filter!=="done"){
     allCombos=null;
     grid.innerHTML=`<div class="empty">${t("emptyActive")}</div>`;
     pager.innerHTML="";
     counter.textContent="";
-    renderCompleted();
     return;
   }
-
-  allCombos=permutations(A);
-  if(allCombos===null){
-    grid.innerHTML=`<div class="empty">${t("emptyTooMany")}</div>`;
-    pager.innerHTML=""; counter.textContent="";
-    renderCompleted(); return;
+  if(n===0){ // filter==="done" with no active colours: still show saved ones
+    allCombos=null;
   }
 
-  let combos=allCombos;
-  if(state.filter==="done") combos=combos.filter(p=>state.done[keyOf(p)]);
-  else if(state.filter==="todo") combos=combos.filter(p=>!state.done[keyOf(p)]);
+  if(n>0){
+    allCombos=permutations(A);
+    if(allCombos===null){
+      grid.innerHTML=`<div class="empty">${t("emptyTooMany")}</div>`;
+      pager.innerHTML=""; counter.textContent="";
+      return;
+    }
+  } else {
+    allCombos=[];
+  }
+
+  const byId=new Map(state.colors.map(c=>[c.id,c]));
+  const savedDone = Object.keys(state.done).map(key=>{
+    const ids=key.split("|");
+    return ids.map(id=>byId.get(id)).filter(Boolean);
+  }).filter(arr=>arr.length>0);
+
+  let combos;
+  if(state.filter==="done"){
+    combos = savedDone;
+    if(combos.length===0){
+      grid.innerHTML=`<div class="empty">${t("noneCompleted")}</div>`;
+      pager.innerHTML="";
+      counter.innerHTML=`<b>0</b> ${t("doneCount")}`;
+      return;
+    }
+  } else if(state.filter=="todo"){
+    combos = allCombos.filter(p=>!state.done[keyOf(p)]);
+  } else {
+    combos = allCombos;
+  }
 
   const total=allCombos.length;
-  const doneCount=allCombos.filter(p=>state.done[keyOf(p)]).length;
+  const doneCount=savedDone.length;
   const loc = LANG==="it"?"it-IT":"en-US";
-  counter.innerHTML=t("counter", n, total.toLocaleString(loc), doneCount);
+  if(state.filter=="done"){
+    counter.innerHTML = `<b>${doneCount}</b> ${t("doneCount")}`;
+  } else {
+    counter.innerHTML=t("counter", n, total.toLocaleString(loc), doneCount);
+  }
 
   const pages=Math.ceil(combos.length/PAGE_SIZE)||1;
   if(state.page>=pages) state.page=pages-1;
@@ -591,11 +600,12 @@ function renderCombos(){
   slice.forEach(perm=>{
     const key=keyOf(perm);
     const isDone=!!state.done[key];
+    const size = perm.length<=4?150: perm.length<=6?140:128;
     const sq=document.createElement("div");
     sq.className="square"+(isDone?" done":"");
     sq.dataset.key=key;
     sq.innerHTML=
-      grannyHtml(perm, ringSize) +
+      grannyHtml(perm, size) +
       `<div class="label">${isDone?t("doneLabel"):t("markDone")}</div>` +
       `<div class="badge">✓</div>`;
     sq.addEventListener("click",()=>{
@@ -622,36 +632,6 @@ function renderCombos(){
     next.onclick=()=>{state.page++;renderCombos();};
     pager.appendChild(next);
   }
-
-  renderCompleted();
-}
-
-// ---------- completed chips (all saved, regardless of disabled) ----------
-function renderCompleted(){
-  const wrap=document.getElementById("completedChips");
-  const keys=Object.keys(state.done);
-  if(keys.length===0){
-    wrap.innerHTML=`<span style="color:var(--muted);font-style:italic;font-weight:300;font-size:14px">${t("noneCompleted")}</span>`;
-    return;
-  }
-  const byId=new Map(state.colors.map(c=>[c.id,c]));
-  wrap.innerHTML="";
-  const frag=document.createDocumentFragment();
-  keys.forEach(key=>{
-    const ids=key.split("|");
-    const cols=ids.map(id=>byId.get(id)).filter(Boolean);
-    const missing=ids.length-cols.length;
-    const chip=document.createElement("div");
-    chip.className="chip";
-    let mini="";
-    if(cols.length){
-      mini=`<span class="mini">${grannyHtml(cols,30)}</span>`;
-    }
-    const miss = missing ? `<span class="miss">${t("chipMiss",missing)}</span>` : "";
-    chip.innerHTML=`${mini}${miss}<span class="x" data-key="${key}" title="${t("chipRemove")}">✕</span>`;
-    frag.appendChild(chip);
-  });
-  wrap.appendChild(frag);
 }
 
 // ---------- events ----------
@@ -694,12 +674,6 @@ document.getElementById("randomBtn").addEventListener("click",()=>{
   const last=state.colors[state.colors.length-1];
   last.r=Math.floor(Math.random()*256); last.g=Math.floor(Math.random()*256); last.b=Math.floor(Math.random()*256);
   save(); renderColors(); renderCombos();
-});
-document.getElementById("completedChips").addEventListener("click",e=>{
-  const x=e.target.closest(".x");
-  if(!x) return;
-  delete state.done[x.dataset.key];
-  save(); renderCombos();
 });
 document.querySelectorAll(".filter").forEach(b=>{
   b.addEventListener("click",()=>{
