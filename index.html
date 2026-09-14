@@ -3,84 +3,143 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Granny Square – Combinazioni Colori</title>
+<title>Granny Square — Combinazioni Colori</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#faf8f5; --panel:#ffffff; --ink:#2b2b2b; --muted:#8a8a8a;
-    --line:#e6e1d8; --accent:#c8553d; --accent-ink:#fff;
-    --ok:#3a7d44; --shadow:0 1px 3px rgba(0,0,0,.08);
+    --bg:#f4efe7; --bg2:#efe8dd;
+    --panel:#fffdf9; --panel-2:#fbf6ee;
+    --ink:#3a322a; --ink-soft:#6b6055; --muted:#9a8f80;
+    --line:#e4dccb; --line-soft:#ece4d6;
+    --accent:#a8543a; --accent-soft:#c97a5b; --accent-ink:#fff7ef;
+    --ok:#5f7a4e; --ok-soft:#eef3e9;
+    --gold:#b08a4a;
+    --shadow:0 1px 2px rgba(58,50,42,.05),0 8px 24px -16px rgba(58,50,42,.18);
+    --shadow-lift:0 2px 6px rgba(58,50,42,.08),0 14px 34px -18px rgba(58,50,42,.28);
+    --radius:14px;
   }
   *{box-sizing:border-box}
-  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    background:var(--bg);color:var(--ink);line-height:1.4}
-  header{padding:18px 22px;background:var(--panel);border-bottom:1px solid var(--line);box-shadow:var(--shadow);
-    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
-  header h1{margin:0;font-size:20px;font-weight:600}
-  header .sub{color:var(--muted);font-size:13px}
-  main{display:grid;grid-template-columns:320px 1fr;gap:18px;padding:18px;max-width:1400px;margin:0 auto}
-  @media(max-width:860px){main{grid-template-columns:1fr}}
-  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;box-shadow:var(--shadow)}
-  .panel h2{margin:0 0 12px;font-size:15px;font-weight:600}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family:"Fraunces",Georgia,"Times New Roman",serif;
+    background:radial-gradient(1200px 600px at 80% -10%,#fff8ee 0,transparent 60%),var(--bg);
+    color:var(--ink);line-height:1.5;
+    font-optical-sizing:auto;font-variation-settings:"opsz" 14,"SOFT" 50;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--accent);color:var(--accent-ink)}
+
+  header{
+    padding:26px 30px;background:linear-gradient(180deg,var(--panel),var(--panel-2));
+    border-bottom:1px solid var(--line);box-shadow:var(--shadow);
+    display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:14px;
+  }
+  header h1{margin:0;font-size:30px;font-weight:500;letter-spacing:.2px;
+    font-variation-settings:"opsz" 60,"SOFT" 100;font-style:italic}
+  header h1 .amp{color:var(--accent);font-style:italic}
+  header .sub{color:var(--ink-soft);font-size:15px;margin-top:4px;font-weight:300;letter-spacing:.3px}
+  header .row-actions{display:flex;gap:8px;align-items:center}
+
+  main{display:grid;grid-template-columns:330px 1fr;gap:22px;padding:24px;max-width:1440px;margin:0 auto}
+  @media(max-width:900px){main{grid-template-columns:1fr}}
+
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:22px;box-shadow:var(--shadow)}
+  .panel h2{margin:0 0 16px;font-size:20px;font-weight:400;letter-spacing:.4px;
+    font-style:italic;color:var(--ink);position:relative}
+  .panel h2::after{content:"";display:block;width:34px;height:2px;background:var(--accent);
+    margin-top:8px;border-radius:2px;opacity:.7}
+  .panel h2 .count{font-style:normal;font-size:13px;color:var(--muted);margin-left:6px;font-weight:300}
 
   /* Color editor */
-  .color-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dashed var(--line)}
+  .color-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line-soft)}
   .color-row:last-child{border-bottom:none}
-  .swatch{width:34px;height:34px;border-radius:6px;border:1px solid var(--line);flex:none;cursor:pointer;position:relative;overflow:hidden}
+  .swatch{width:38px;height:38px;border-radius:9px;border:1px solid var(--line);flex:none;
+    cursor:pointer;position:relative;overflow:hidden;box-shadow:inset 0 0 0 2px rgba(255,255,255,.35)}
   .swatch input[type=color]{position:absolute;inset:0;opacity:0;cursor:pointer;border:none;padding:0}
-  .cname{flex:1;min-width:0;border:none;background:transparent;font-size:14px;color:var(--ink);border-bottom:1px solid transparent}
+  .cname{flex:1;min-width:0;border:none;background:transparent;font-family:inherit;font-size:17px;
+    color:var(--ink);border-bottom:1px solid transparent;font-weight:400;letter-spacing:.2px}
   .cname:focus{outline:none;border-bottom-color:var(--accent)}
-  .crgb{font-size:11px;color:var(--muted);font-family:monospace;width:78px;text-align:center}
-  .btn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:7px;padding:6px 10px;cursor:pointer;font-size:13px}
-  .btn:hover{background:#f3efe9}
-  .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-  .btn.primary:hover{background:#b04630}
-  .btn.sm{padding:4px 8px;font-size:12px}
-  .toggle{width:42px;height:22px;border-radius:22px;background:#d8d2c8;position:relative;cursor:pointer;flex:none;transition:.15s}
-  .toggle.on{background:var(--ok)}
-  .toggle::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.15s}
-  .toggle.on::after{left:22px}
+  .crgb{font-size:11px;color:var(--muted);width:84px;text-align:center;letter-spacing:.5px;
+    font-feature-settings:"tnum"}
+  .btn{border:1px solid var(--line);background:var(--panel);color:var(--ink);
+    border-radius:10px;padding:8px 14px;cursor:pointer;font-family:inherit;font-size:14px;
+    font-weight:400;letter-spacing:.2px;transition:.15s}
+  .btn:hover{background:var(--panel-2);border-color:var(--accent-soft)}
+  .btn.primary{background:linear-gradient(180deg,var(--accent-soft),var(--accent));
+    color:var(--accent-ink);border-color:var(--accent);box-shadow:0 2px 8px -3px rgba(168,84,58,.5)}
+  .btn.primary:hover{filter:brightness(1.05)}
+  .btn.sm{padding:6px 11px;font-size:13px}
+  .toggle{width:46px;height:24px;border-radius:24px;background:#d8cfbe;position:relative;
+    cursor:pointer;flex:none;transition:.18s;border:1px solid var(--line)}
+  .toggle.on{background:var(--ok);border-color:var(--ok)}
+  .toggle::after{content:"";position:absolute;top:1px;left:1px;width:20px;height:20px;border-radius:50%;
+    background:#fff;transition:.18s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+  .toggle.on::after{left:23px}
   .row-actions{display:flex;gap:6px;align-items:center}
-  .add-color{margin-top:12px}
+  .add-color{margin-top:16px;gap:8px}
+  .hint{font-size:13px;color:var(--ink-soft);margin-top:14px;font-weight:300;line-height:1.6;
+    border-top:1px solid var(--line-soft);padding-top:12px}
 
   /* Stats / filters */
-  .stats{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+  .stats{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+  #counter{font-size:14px;color:var(--ink-soft);font-weight:300;letter-spacing:.2px}
+  #counter b{font-weight:500;color:var(--ink);font-style:italic}
   .filters{display:flex;gap:6px;flex-wrap:wrap}
-  .filters .btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-  .hint{font-size:12px;color:var(--muted);margin-top:8px}
+  .filters .btn.active{background:linear-gradient(180deg,var(--accent-soft),var(--accent));
+    color:var(--accent-ink);border-color:var(--accent)}
+  .filters .btn.active:hover{filter:brightness(1.05)}
 
   /* Combinations grid */
-  #comboWrap{margin-top:14px}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
-  .square{border:1px solid var(--line);border-radius:8px;padding:8px;background:#fff;cursor:pointer;transition:.12s;position:relative}
-  .square:hover{box-shadow:var(--shadow);transform:translateY(-1px)}
-  .square.done{border-color:var(--ok);background:#f1f8f1}
-  .square.done .badge{display:inline-flex}
-  .rings{display:flex;flex-direction:column;border-radius:6px;overflow:hidden;border:1px solid var(--line)}
-  .ring{height:18px;display:flex;align-items:center;justify-content:center;font-size:9px;color:rgba(0,0,0,.55);font-weight:600}
-  .ring span{background:rgba(255,255,255,.7);border-radius:3px;padding:0 3px}
-  .square .label{font-size:11px;margin-top:6px;color:var(--muted);text-align:center}
-  .square .badge{display:none;position:absolute;top:4px;right:4px;font-size:11px;color:var(--ok)}
-  .center-dot{width:8px;height:8px;border-radius:50%;background:#fff;border:1px solid var(--line);margin:2px auto}
+  #comboWrap{margin-top:18px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px}
+  .square{border:1px solid var(--line);border-radius:var(--radius);padding:14px;background:var(--panel);
+    cursor:pointer;transition:.18s;position:relative;display:flex;flex-direction:column;align-items:center}
+  .square:hover{box-shadow:var(--shadow-lift);transform:translateY(-2px);border-color:var(--accent-soft)}
+  .square.done{border-color:var(--ok);background:linear-gradient(180deg,var(--ok-soft),var(--panel))}
+  .square.done .badge{opacity:1;transform:scale(1)}
+  .square .label{font-size:13px;margin-top:10px;color:var(--muted);text-align:center;font-style:italic;font-weight:300}
+  .square.done .label{color:var(--ok);font-weight:500}
+  .square .badge{position:absolute;top:10px;right:10px;font-size:15px;color:var(--ok);
+    opacity:0;transform:scale(.6);transition:.18s}
+
+  /* Concentric granny square */
+  .granny{position:relative;display:flex;align-items:center;justify-content:center}
+  .ring{position:relative;display:flex;align-items:center;justify-content:center;
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
+  .gnum{position:absolute;top:1px;left:50%;transform:translateX(-50%);
+    font-size:8px;font-weight:600;letter-spacing:.3px;font-family:"Fraunces",serif;
+    font-feature-settings:"tnum";pointer-events:none;text-shadow:0 1px 1px rgba(0,0,0,.15)}
 
   /* pagination */
-  .pager{display:flex;gap:8px;justify-content:center;align-items:center;margin-top:14px;flex-wrap:wrap}
-  .empty{text-align:center;color:var(--muted);padding:40px 10px}
+  .pager{display:flex;gap:10px;justify-content:center;align-items:center;margin-top:18px;flex-wrap:wrap}
+  .pager .info{font-size:13px;color:var(--muted);font-weight:300;letter-spacing:.2px}
+  .empty{text-align:center;color:var(--muted);padding:48px 10px;font-style:italic;font-weight:300}
 
   /* completed section */
-  #completedSec{margin-top:22px}
-  .chips{display:flex;flex-wrap:wrap;gap:8px}
-  .chip{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:20px;padding:4px 10px 4px 4px;background:#fff;font-size:12px}
-  .chip .dots{display:flex;gap:2px}
-  .chip .dots i{width:12px;height:12px;border-radius:50%;display:block;border:1px solid rgba(0,0,0,.15)}
-  .chip .x{cursor:pointer;color:var(--muted);font-weight:700}
+  #completedSec{margin-top:28px;border-top:1px solid var(--line-soft);padding-top:20px}
+  .chips{display:flex;flex-wrap:wrap;gap:10px}
+  .chip{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:24px;
+    padding:6px 12px 6px 6px;background:var(--panel);box-shadow:var(--shadow);font-size:13px}
+  .chip:hover{border-color:var(--accent-soft)}
+  .chip .x{cursor:pointer;color:var(--muted);font-weight:400;font-size:15px;line-height:1}
   .chip .x:hover{color:var(--accent)}
+  .chip .mini .ring{box-shadow:inset 0 0 0 .5px rgba(0,0,0,.12)}
+  .chip .miss{font-size:11px;color:var(--muted);font-style:italic}
+
+  /* footer note */
+  .foot{max-width:1440px;margin:0 auto;padding:0 24px 32px;color:var(--muted);
+    font-size:12px;font-weight:300;letter-spacing:.3px}
 </style>
 </head>
 <body>
 <header>
   <div>
-    <h1>🧶 Granny Square – Combinazioni Colori</h1>
-    <div class="sub">Ogni giro un colore diverso · permutazioni dei colori attivi</div>
+    <h1>Granny Square <span class="amp">·</span> Combinazioni</h1>
+    <div class="sub">Ogni giro un colore diverso — permutazioni dei colori attivi</div>
   </div>
   <div class="row-actions">
     <button class="btn" id="resetBtn" title="Azzera tutto (colori e completati)">Azzera dati</button>
@@ -91,16 +150,16 @@
   <section class="panel" id="leftPanel">
     <h2>Colori</h2>
     <div id="colorList"></div>
-    <div class="add-color row-actions" style="gap:8px">
+    <div class="add-color row-actions">
       <button class="btn primary sm" id="addBtn">+ Aggiungi colore</button>
       <button class="btn sm" id="randomBtn">Random</button>
     </div>
-    <p class="hint">Numero di giri = numero di colori attivi. Disattiva un colore per ridurre i giri di uno: le combinazioni si ricalcolano, ma i granny square già completati restano salvati.</p>
+    <p class="hint">Il numero di giri equivale al numero di colori attivi. Disattiva un colore per ridurre i giri di uno: le combinazioni si ricalcolano, ma i granny square già completati restano salvati.</p>
   </section>
 
   <section class="panel">
     <div class="stats">
-      <div id="counter" class="sub"></div>
+      <div id="counter"></div>
       <div class="filters">
         <button class="btn sm filter" data-f="all">Tutte</button>
         <button class="btn sm filter" data-f="todo">Da fare</button>
@@ -113,21 +172,22 @@
     </div>
 
     <div id="completedSec">
-      <h2 style="margin-top:18px">Completati salvati (anche con colori disattivati)</h2>
+      <h2>Completati salvati <span class="count">anche con colori disattivati</span></h2>
       <div id="completedChips" class="chips"></div>
     </div>
   </section>
 </main>
 
+<div class="foot">Fraunces · tipografia di Phaedra Charles &amp; Flavia Zimbardi · i tuoi dati restano solo in questo browser.</div>
+
 <script>
 "use strict";
 const STORE_KEY = "grannySquares.v1";
 const PAGE_SIZE = 120;
-const RING_HEIGHT = 18;
 
 const state = {
-  colors: [],      // [{id,name,r,g,b,enabled}]
-  done: {},        // key -> true  (key = ordered ids joined by "|")
+  colors: [],
+  done: {},
   filter: "all",
   page: 0,
 };
@@ -154,12 +214,12 @@ function save(){
 }
 function seed(){
   const palette = [
-    {name:"Rosso",   rgb:[200,60,50]},
-    {name:"Arancio", rgb:[235,150,40]},
-    {name:"Giallo",  rgb:[245,210,60]},
-    {name:"Verde",   rgb:[90,170,80]},
-    {name:"Azzurro", rgb:[90,160,210]},
-    {name:"Viola",   rgb:[150,90,190]},
+    {name:"Bordeaux", rgb:[150,40,50]},
+    {name:"Zafferano", rgb:[214,150,40]},
+    {name:"Crema",    rgb:[238,222,188]},
+    {name:"Salvia",   rgb:[120,158,110]},
+    {name:"Lago",     rgb:[86,128,150]},
+    {name:"Prugna",   rgb:[120,78,120]},
   ];
   state.colors = palette.map(p=>({id:nextId(),name:p.name,r:p.rgb[0],g:p.rgb[1],b:p.rgb[2],enabled:true}));
   save();
@@ -170,7 +230,7 @@ const active = ()=> state.colors.filter(c=>c.enabled);
 const hex = c=>"#"+[c.r,c.g,c.b].map(v=>v.toString(16).padStart(2,"0")).join("");
 const fromHex = h=>{ h=h.replace("#",""); return {r:parseInt(h.slice(0,2),16),g:parseInt(h.slice(2,4),16),b:parseInt(h.slice(4,6),16)}; };
 const lum = c=>(0.299*c.r+0.587*c.g+0.114*c.b);
-const contrast = c=> lum(c)>140 ? "#000" : "#fff";
+const contrast = c=> lum(c)>140 ? "rgba(0,0,0,.62)" : "rgba(255,255,255,.92)";
 const keyOf = arr=> arr.map(c=>c.id).join("|");
 
 // ---------- permutations (Heap's algorithm) ----------
@@ -178,9 +238,7 @@ function permutations(arr){
   const out=[];
   const n=arr.length;
   if(n===0) return [[]];
-  if(n>10){ // safety cap
-    return null;
-  }
+  if(n>10){ return null; }
   const a=arr.slice();
   const c=new Array(n).fill(0);
   out.push(a.slice());
@@ -191,9 +249,26 @@ function permutations(arr){
       out.push(a.slice());
       c[i]++; i=1;
     } else { c[i]=0; i++; }
-    if(out.length>500000){ return out; } // hard guard
+    if(out.length>500000){ return out; }
   }
   return out;
+}
+
+// ---------- concentric granny square HTML ----------
+// perm[0] = outermost ring (giro 1), last = center.
+function grannyHtml(perm, size){
+  const n=perm.length;
+  if(n===0) return "";
+  const S=size;
+  const t=S/(2*n);                 // band thickness
+  let inner="";
+  for(let k=n-1;k>=0;k--){
+    const col=perm[k];
+    const side=Math.max(S - 2*k*t, 2);
+    const label = t>=8.5 ? `<span class="gnum" style="color:${contrast(col)}">${k+1}</span>` : "";
+    inner = `<div class="ring" style="width:${side.toFixed(1)}px;height:${side.toFixed(1)}px;background:${hex(col)}">${label}${inner}</div>`;
+  }
+  return `<div class="granny" style="width:${S}px;height:${S}px">${inner}</div>`;
 }
 
 // ---------- render colors ----------
@@ -248,13 +323,15 @@ function renderCombos(){
 
   const total=allCombos.length;
   const doneCount=allCombos.filter(p=>state.done[keyOf(p)]).length;
-  counter.textContent=`${n} colori attivi → ${n} giri · ${total.toLocaleString("it-IT")} combinazioni · ${doneCount} completate`;
+  counter.innerHTML=`<b>${n}</b> colori attivi → <b>${n}</b> giri · <b>${total.toLocaleString("it-IT")}</b> combinazioni · <b>${doneCount}</b> completate`;
 
   const pages=Math.ceil(combos.length/PAGE_SIZE)||1;
   if(state.page>=pages) state.page=pages-1;
   if(state.page<0) state.page=0;
   const start=state.page*PAGE_SIZE;
   const slice=combos.slice(start,start+PAGE_SIZE);
+
+  const ringSize = n<=4?150: n<=6?140:128;
 
   grid.innerHTML="";
   const frag=document.createDocumentFragment();
@@ -264,16 +341,10 @@ function renderCombos(){
     const sq=document.createElement("div");
     sq.className="square"+(isDone?" done":"");
     sq.dataset.key=key;
-
-    // rings: render outer-to-inner; first element is outermost ring
-    let ringsHtml="";
-    perm.forEach((col,ri)=>{
-      ringsHtml+=`<div class="ring" style="background:${hex(col)};color:${contrast(col)}"><span>${ri+1}</span></div>`;
-    });
-    sq.innerHTML=`
-      <div class="rings">${ringsHtml}<div class="center-dot"></div></div>
-      <div class="label">${isDone?"✓ Completato":"Segna completato"}</div>
-      <div class="badge">✓</div>`;
+    sq.innerHTML=
+      grannyHtml(perm, ringSize) +
+      `<div class="label">${isDone?"✓ Completato":"Segna completato"}</div>` +
+      `<div class="badge">✓</div>`;
     sq.addEventListener("click",()=>{
       if(state.done[key]) delete state.done[key]; else state.done[key]=true;
       save();
@@ -283,7 +354,6 @@ function renderCombos(){
   });
   grid.appendChild(frag);
 
-  // pager
   pager.innerHTML="";
   if(pages>1){
     const prev=document.createElement("button");
@@ -291,8 +361,8 @@ function renderCombos(){
     prev.onclick=()=>{state.page--;renderCombos();};
     pager.appendChild(prev);
     const info=document.createElement("span");
-    info.style.fontSize="12px"; info.style.color="var(--muted)";
-    info.textContent=`${state.page+1} / ${pages}  (pagina ${start+1}–${Math.min(start+PAGE_SIZE,combos.length)} di ${combos.length})`;
+    info.className="info";
+    info.textContent=`${state.page+1} / ${pages}  ·  pagina ${start+1}–${Math.min(start+PAGE_SIZE,combos.length)} di ${combos.length}`;
     pager.appendChild(info);
     const next=document.createElement("button");
     next.className="btn sm"; next.textContent="›"; next.disabled=state.page===pages-1;
@@ -308,7 +378,7 @@ function renderCompleted(){
   const wrap=document.getElementById("completedChips");
   const keys=Object.keys(state.done);
   if(keys.length===0){
-    wrap.innerHTML=`<span style="color:var(--muted);font-size:12px">Nessun granny square completato ancora.</span>`;
+    wrap.innerHTML=`<span style="color:var(--muted);font-style:italic;font-weight:300;font-size:14px">Nessun granny square completato ancora.</span>`;
     return;
   }
   const byId=new Map(state.colors.map(c=>[c.id,c]));
@@ -320,11 +390,12 @@ function renderCompleted(){
     const missing=ids.length-cols.length;
     const chip=document.createElement("div");
     chip.className="chip";
-    let dots="";
-    cols.forEach(c=>{ dots+=`<i style="background:${hex(c)}" title="${c.name}"></i>`; });
-    if(missing) dots+=`<span style="font-size:10px;color:var(--muted)">+${missing} disatt.</span>`;
-    chip.innerHTML=`<span class="dots">${dots}</span>
-      <span class="x" data-key="${key}" title="Rimuovi dai completati">✕</span>`;
+    let mini="";
+    if(cols.length){
+      mini=`<span class="mini">${grannyHtml(cols,30)}</span>`;
+    }
+    const miss = missing ? `<span class="miss">+${missing} disatt.</span>` : "";
+    chip.innerHTML=`${mini}${miss}<span class="x" data-key="${key}" title="Rimuovi dai completati">✕</span>`;
     frag.appendChild(chip);
   });
   wrap.appendChild(frag);
@@ -362,7 +433,7 @@ document.getElementById("colorList").addEventListener("input",e=>{
   }
 });
 document.getElementById("addBtn").addEventListener("click",()=>{
-  state.colors.push({id:nextId(),name:"Colore "+(state.colors.length+1),r:120,g:120,b:120,enabled:true});
+  state.colors.push({id:nextId(),name:"Colore "+(state.colors.length+1),r:130,g:120,b:110,enabled:true});
   save(); renderColors(); state.page=0; renderCombos();
 });
 document.getElementById("randomBtn").addEventListener("click",()=>{
