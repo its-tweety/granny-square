@@ -11,16 +11,6 @@ Webapp per generare tutte le combinazioni cromatiche dei giri di un granny squar
 - Filtri (tutte / da fare / completate) e paginazione configurabile
 - Sincronizzazione cloud opzionale via Supabase
 
-## Avvio
-
-Apri `index.html` nel browser. I dati sono salvati in `localStorage`.
-
-## Pubblicazione (GitHub Pages)
-
-1. <https://github.com/its-tweety/granny-square/settings/pages>
-2. **Source → branch `main` / root → Save**
-3. <https://its-tweety.github.io/granny-square/>
-
 ## Sincronizzazione cloud (Supabase)
 
 Per dati permanenti e condivisi tra dispositivi.
@@ -48,7 +38,3 @@ create policy "public write" on granny_state for all    using (true) with check 
 ### 3. Connessione
 
 Nell'app, pulsante **Cloud**: inserisci Project URL e Publishable key, quindi **Connetti**. Le modifiche si sincronizzano automaticamente; le credenziali restano nel browser.
-
-## Sicurezza
-
-Le policy sopra sono pubbliche (uso personale). Per impedire accessi esterni, sostituirle con regole RLS più restrittive. La sicurezza dipende dalle policy, non dalla segretezza della Publishable key.
