@@ -116,9 +116,6 @@
   .granny{position:relative;display:flex;align-items:center;justify-content:center}
   .ring{position:relative;display:flex;align-items:center;justify-content:center;
     box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
-  .gnum{position:absolute;top:1px;left:50%;transform:translateX(-50%);
-    font-size:8px;font-weight:600;letter-spacing:.3px;font-family:"Fraunces",serif;
-    font-feature-settings:"tnum";pointer-events:none;text-shadow:0 1px 1px rgba(0,0,0,.15)}
 
   /* pagination */
   .pager{display:flex;gap:10px;justify-content:center;align-items:center;margin-top:18px;flex-wrap:wrap}
@@ -278,8 +275,7 @@ function grannyHtml(perm, size){
   for(let k=n-1;k>=0;k--){
     const col=perm[k];
     const side=Math.max(S - 2*k*t, 2);
-    const label = t>=8.5 ? `<span class="gnum" style="color:${contrast(col)}">${k+1}</span>` : "";
-    inner = `<div class="ring" style="width:${side.toFixed(1)}px;height:${side.toFixed(1)}px;background:${hex(col)}">${label}${inner}</div>`;
+    inner = `<div class="ring" style="width:${side.toFixed(1)}px;height:${side.toFixed(1)}px;background:${hex(col)}">${inner}</div>`;
   }
   return `<div class="granny" style="width:${S}px;height:${S}px">${inner}</div>`;
 }
