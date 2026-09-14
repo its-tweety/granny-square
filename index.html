@@ -45,6 +45,11 @@
   .cloud-dot.on{background:var(--ok);border-color:var(--ok)}
   .cloud-dot.err{background:var(--accent);border-color:var(--accent)}
   .cloud-btn{display:flex;align-items:center;gap:7px}
+  .lang-switch{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;flex:none}
+  .lang-switch button{border:none;background:var(--panel);color:var(--ink-soft);font-family:inherit;
+    font-size:13px;font-weight:500;letter-spacing:.3px;padding:7px 10px;cursor:pointer;transition:.15s}
+  .lang-switch button+button{border-left:1px solid var(--line)}
+  .lang-switch button.active{background:linear-gradient(180deg,var(--accent-soft),var(--accent));color:var(--accent-ink)}
 
   main{display:grid;grid-template-columns:330px 1fr;gap:22px;padding:24px;max-width:1440px;margin:0 auto;align-items:start}
   @media(max-width:900px){main{grid-template-columns:1fr}}
@@ -205,22 +210,26 @@
     <h1>Granny Square <span class="amp">·</span> Combinazioni</h1>
   </div>
   <div class="row-actions">
-    <button class="btn cloud-btn" id="cloudBtn" title="Sincronizzazione cloud Supabase">
-      <span class="cloud-dot" id="cloudDot"></span> Cloud
+    <div class="lang-switch" id="langSwitch" role="group" aria-label="Language">
+      <button type="button" data-lang="it">IT</button>
+      <button type="button" data-lang="en">EN</button>
+    </div>
+    <button class="btn cloud-btn" id="cloudBtn" data-i18n-title="cloudTitle">
+      <span class="cloud-dot" id="cloudDot"></span> <span data-i18n="cloud">Cloud</span>
     </button>
-    <button class="btn" id="resetBtn" title="Azzera tutto (colori e completati)">Azzera dati</button>
+    <button class="btn" id="resetBtn" data-i18n="reset" data-i18n-title="resetTitle"></button>
   </div>
 </header>
 
 <main>
   <section class="panel" id="leftPanel">
-    <h2>Colori</h2>
+    <h2 data-i18n="colors"></h2>
     <div id="colorList"></div>
     <div class="add-color row-actions">
-      <button class="btn primary sm" id="addBtn">+ Aggiungi colore</button>
-      <button class="btn sm" id="randomBtn">Random</button>
+      <button class="btn primary sm" id="addBtn" data-i18n="addColor"></button>
+      <button class="btn sm" id="randomBtn" data-i18n="random"></button>
     </div>
-    <p class="hint">Il numero di giri equivale al numero di colori attivi. Disattiva un colore per ridurre i giri di uno: le combinazioni si ricalcolano, ma i granny square già completati restano salvati.</p>
+    <p class="hint" data-i18n="hint"></p>
   </section>
 
   <section class="panel">
@@ -228,12 +237,12 @@
       <div id="counter"></div>
       <div class="controls">
         <div class="filters">
-          <button class="btn sm filter" data-f="all">Tutte</button>
-          <button class="btn sm filter" data-f="todo">Da fare</button>
-          <button class="btn sm filter" data-f="done">Completate</button>
+          <button class="btn sm filter" data-f="all" data-i18n="fAll"></button>
+          <button class="btn sm filter" data-f="todo" data-i18n="fTodo"></button>
+          <button class="btn sm filter" data-f="done" data-i18n="fDone"></button>
         </div>
-        <span class="plabel">per pagina</span>
-        <select class="psize" id="pageSize" title="Combinazioni per pagina">
+        <span class="plabel" data-i18n="perPage"></span>
+        <select class="psize" id="pageSize" data-i18n-title="pageSizeTitle">
           <option value="24">24</option>
           <option value="48">48</option>
           <option value="120" selected>120</option>
@@ -248,7 +257,7 @@
     </div>
 
     <div id="completedSec">
-      <h2>Completati salvati <span class="count">anche con colori disattivati</span></h2>
+      <h2><span data-i18n="completedSaved"></span> <span class="count" data-i18n="evenDisabled"></span></h2>
       <div id="completedChips" class="chips"></div>
     </div>
   </section>
@@ -256,20 +265,20 @@
 
 <div class="overlay" id="cloudOverlay">
   <div class="modal">
-    <h2>Sincronizzazione cloud</h2>
-    <p class="desc">Salva colori e granny square completati su Supabase: restano permanenti e sincronizzati tra dispositivi. Le credenziali restano solo in questo browser.</p>
-    <label for="sbUrl">Project URL</label>
+    <h2 data-i18n="cloudTitleModal"></h2>
+    <p class="desc" data-i18n="cloudDesc"></p>
+    <label for="sbUrl" data-i18n="sbUrlLabel"></label>
     <input type="text" id="sbUrl" placeholder="https://xxxxxxxx.supabase.co" autocomplete="off">
-    <label for="sbKey">anon / public key</label>
+    <label for="sbKey" data-i18n="sbKeyLabel"></label>
     <input type="password" id="sbKey" placeholder="eyJhbGciOi..." autocomplete="off">
     <div class="status" id="cloudStatus"></div>
     <div class="mrow">
-      <button class="btn primary sm" id="cloudSave">Connetti e sincronizza</button>
-      <button class="btn sm" id="cloudTest">Solo prova</button>
-      <button class="btn sm" id="cloudClear">Disconnetti</button>
-      <button class="btn sm" id="cloudClose">Chiudi</button>
+      <button class="btn primary sm" id="cloudSave" data-i18n="cloudSave"></button>
+      <button class="btn sm" id="cloudTest" data-i18n="cloudTest"></button>
+      <button class="btn sm" id="cloudClear" data-i18n="cloudClear"></button>
+      <button class="btn sm" id="cloudClose" data-i18n="cloudClose"></button>
     </div>
-    <a class="mlink" href="https://supabase.com/dashboard" target="_blank" rel="noopener">Crea un progetto su supabase.com →</a>
+    <a class="mlink" href="https://supabase.com/dashboard" target="_blank" rel="noopener" data-i18n="cloudCreateLink"></a>
   </div>
 </div>
 
@@ -277,7 +286,78 @@
 <script>
 "use strict";
 const STORE_KEY = "grannySquares.v1";
+const LANG_KEY = "grannySquares.lang";
 let PAGE_SIZE = 120;
+
+// ---------- i18n ----------
+let LANG = localStorage.getItem(LANG_KEY) || "it";
+const I18N = {
+  it:{
+    colors:"Colori", addColor:"+ Aggiungi colore", random:"Random",
+    hint:"Il numero di giri equivale al numero di colori attivi. Disattiva un colore per ridurre i giri di uno: le combinazioni si ricalcolano, ma i granny square già completati restano salvati.",
+    fAll:"Tutte", fTodo:"Da fare", fDone:"Completate", perPage:"per pagina", pageSizeTitle:"Combinazioni per pagina",
+    counter:(n,total,done)=>`<b>${n}</b> colori attivi → <b>${n}</b> giri · <b>${total}</b> combinazioni · <b>${done}</b> completate`,
+    pageOf:(cur,pages,start,end,len)=>`${cur} / ${pages}  ·  pagina ${start}–${end} di ${len}`,
+    doneLabel:"✓ Completato", markDone:"Segna completato",
+    emptyActive:"Nessun colore attivo. Attiva almeno un colore per vedere le combinazioni.",
+    emptyTooMany:"Troppi colori attivi (max 10) per generare tutte le permutazioni.",
+    completedSaved:"Completati salvati", evenDisabled:"anche con colori disattivati",
+    noneCompleted:"Nessun granny square completato ancora.",
+    chipMiss:(n)=>`+${n} disatt.`, chipRemove:"Rimuovi dai completati",
+    namePlaceholder:"Nome",
+    toggleTitle:"Attiva/disattiva", delTitle:"Elimina", delColor:"Eliminare questo colore? I granny square già completati con questo colore restano salvati.",
+    newColor:(n)=>"Colore "+n,
+    reset:"Azzera dati", resetTitle:"Azzera tutto (colori e completati)", resetConfirm:"Azzerare TUTTO (colori e completati)?",
+    cloud:"Cloud", cloudTitle:"Sincronizzazione cloud Supabase",
+    cloudTitleModal:"Sincronizzazione cloud", cloudDesc:"Salva colori e granny square completati su Supabase: restano permanenti e sincronizzati tra dispositivi. Le credenziali restano solo in questo browser.",
+    sbUrlLabel:"Project URL", sbKeyLabel:"Publishable / anon key",
+    cloudSave:"Connetti e sincronizza", cloudTest:"Solo prova", cloudClear:"Disconnetti", cloudClose:"Chiudi",
+    cloudCreateLink:"Crea un progetto su supabase.com →",
+    cloudConnected:"Connesso.", cloudDisconnected:"Disconnesso. I dati restano salvati solo in questo browser.",
+    cloudTesting:"Provo la connessione…",
+    cloudOkFound:"Connessione riuscita (trovato stato remoto).", cloudOkEmpty:"Connessione riuscita (tabella vuota: la prima sincronizzazione creerà il record).",
+    cloudFail:"Connessione fallita. Controlla URL, anon key e di aver eseguito lo script SQL (vedi istruzioni).",
+    cloudEnter:"Inserisci URL e anon key.", cloudConnecting:"Connessione in corso…", cloudSyncing:"Sincronizzo…",
+    cloudSynced:"Sincronizzato. Dati permanenti e condivisi tra dispositivi.",
+    cloudFail2:"Connessione fallita. Controlla URL, anon key e di aver eseguito lo script SQL.",
+  },
+  en:{
+    colors:"Colors", addColor:"+ Add color", random:"Random",
+    hint:"The number of rounds equals the number of active colors. Disable a colour to reduce the rounds by one: combinations are recalculated, but already completed granny squares stay saved.",
+    fAll:"All", fTodo:"To do", fDone:"Done", perPage:"per page", pageSizeTitle:"Combinations per page",
+    counter:(n,total,done)=>`<b>${n}</b> active colours → <b>${n}</b> rounds · <b>${total}</b> combinations · <b>${done}</b> completed`,
+    pageOf:(cur,pages,start,end,len)=>`${cur} / ${pages}  ·  page ${start}–${end} of ${len}`,
+    doneLabel:"✓ Completed", markDone:"Mark complete",
+    emptyActive:"No active colour. Activate at least one colour to see combinations.",
+    emptyTooMany:"Too many active colours (max 10) to generate all permutations.",
+    completedSaved:"Saved completed", evenDisabled:"even with disabled colours",
+    noneCompleted:"No granny square completed yet.",
+    chipMiss:(n)=>`+${n} dis.`, chipRemove:"Remove from completed",
+    namePlaceholder:"Name",
+    toggleTitle:"Enable/disable", delTitle:"Delete", delColor:"Delete this colour? Already completed granny squares with this colour stay saved.",
+    newColor:(n)=>"Colour "+n,
+    reset:"Reset data", resetTitle:"Reset all (colours and completed)", resetConfirm:"Reset ALL (colours and completed)?",
+    cloud:"Cloud", cloudTitle:"Supabase cloud sync",
+    cloudTitleModal:"Cloud sync", cloudDesc:"Save colours and completed granny squares to Supabase: they stay permanent and synced across devices. Credentials stay only in this browser.",
+    sbUrlLabel:"Project URL", sbKeyLabel:"Publishable / anon key",
+    cloudSave:"Connect and sync", cloudTest:"Test only", cloudClear:"Disconnect", cloudClose:"Close",
+    cloudCreateLink:"Create a project on supabase.com →",
+    cloudConnected:"Connected.", cloudDisconnected:"Disconnected. Data stays saved only in this browser.",
+    cloudTesting:"Testing connection…",
+    cloudOkFound:"Connection successful (remote state found).", cloudOkEmpty:"Connection successful (empty table: first sync will create the record).",
+    cloudFail:"Connection failed. Check URL, anon key and that you ran the SQL script (see instructions).",
+    cloudEnter:"Enter URL and anon key.", cloudConnecting:"Connecting…", cloudSyncing:"Syncing…",
+    cloudSynced:"Synced. Permanent data, shared across devices.",
+    cloudFail2:"Connection failed. Check URL, anon key and that you ran the SQL script.",
+  },
+};
+const t = (k, ...a) => { const v = I18N[LANG][k]; return typeof v === "function" ? v(...a) : v; };
+function applyLang(){
+  document.documentElement.lang = LANG;
+  document.querySelectorAll("[data-i18n]").forEach(el=>{ el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll("[data-i18n-title]").forEach(el=>{ el.title = t(el.dataset.i18nTitle); });
+  document.querySelectorAll("#langSwitch button").forEach(b=> b.classList.toggle("active", b.dataset.lang===LANG));
+}
 
 const state = {
   colors: [],
@@ -453,12 +533,12 @@ function renderColors(){
         <input type="color" value="${hex(c)}" data-i="${idx}" data-act="color">
       </label>
       <div class="cname-wrap">
-        <input class="cname" value="${c.name.replace(/"/g,'&quot;')}" data-i="${idx}" data-act="name" placeholder="Nome">
+        <input class="cname" value="${c.name.replace(/"/g,'&quot;')}" data-i="${idx}" data-act="name" placeholder="${t("namePlaceholder")}">
         <span class="crgb">${c.r}, ${c.g}, ${c.b}</span>
       </div>
       <div class="row-actions">
-        <div class="toggle ${c.enabled?'on':''}" data-i="${idx}" data-act="toggle" title="Attiva/disattiva"></div>
-        <button class="btn sm" data-i="${idx}" data-act="del" title="Elimina">✕</button>
+        <div class="toggle ${c.enabled?'on':''}" data-i="${idx}" data-act="toggle" title="${t("toggleTitle")}"></div>
+        <button class="btn sm" data-i="${idx}" data-act="del" title="${t("delTitle")}">✕</button>
       </div>`;
     list.appendChild(row);
   });
@@ -475,7 +555,7 @@ function renderCombos(){
 
   if(n===0){
     allCombos=null;
-    grid.innerHTML=`<div class="empty">Nessun colore attivo. Attiva almeno un colore per vedere le combinazioni.</div>`;
+    grid.innerHTML=`<div class="empty">${t("emptyActive")}</div>`;
     pager.innerHTML="";
     counter.textContent="";
     renderCompleted();
@@ -484,7 +564,7 @@ function renderCombos(){
 
   allCombos=permutations(A);
   if(allCombos===null){
-    grid.innerHTML=`<div class="empty">Troppi colori attivi (max 10) per generare tutte le permutazioni.</div>`;
+    grid.innerHTML=`<div class="empty">${t("emptyTooMany")}</div>`;
     pager.innerHTML=""; counter.textContent="";
     renderCompleted(); return;
   }
@@ -495,7 +575,8 @@ function renderCombos(){
 
   const total=allCombos.length;
   const doneCount=allCombos.filter(p=>state.done[keyOf(p)]).length;
-  counter.innerHTML=`<b>${n}</b> colori attivi → <b>${n}</b> giri · <b>${total.toLocaleString("it-IT")}</b> combinazioni · <b>${doneCount}</b> completate`;
+  const loc = LANG==="it"?"it-IT":"en-US";
+  counter.innerHTML=t("counter", n, total.toLocaleString(loc), doneCount);
 
   const pages=Math.ceil(combos.length/PAGE_SIZE)||1;
   if(state.page>=pages) state.page=pages-1;
@@ -515,7 +596,7 @@ function renderCombos(){
     sq.dataset.key=key;
     sq.innerHTML=
       grannyHtml(perm, ringSize) +
-      `<div class="label">${isDone?"✓ Completato":"Segna completato"}</div>` +
+      `<div class="label">${isDone?t("doneLabel"):t("markDone")}</div>` +
       `<div class="badge">✓</div>`;
     sq.addEventListener("click",()=>{
       if(state.done[key]) delete state.done[key]; else state.done[key]=true;
@@ -534,7 +615,7 @@ function renderCombos(){
     pager.appendChild(prev);
     const info=document.createElement("span");
     info.className="info";
-    info.textContent=`${state.page+1} / ${pages}  ·  pagina ${start+1}–${Math.min(start+PAGE_SIZE,combos.length)} di ${combos.length}`;
+    info.textContent=t("pageOf", state.page+1, pages, start+1, Math.min(start+PAGE_SIZE,combos.length), combos.length);
     pager.appendChild(info);
     const next=document.createElement("button");
     next.className="btn sm"; next.textContent="›"; next.disabled=state.page===pages-1;
@@ -550,7 +631,7 @@ function renderCompleted(){
   const wrap=document.getElementById("completedChips");
   const keys=Object.keys(state.done);
   if(keys.length===0){
-    wrap.innerHTML=`<span style="color:var(--muted);font-style:italic;font-weight:300;font-size:14px">Nessun granny square completato ancora.</span>`;
+    wrap.innerHTML=`<span style="color:var(--muted);font-style:italic;font-weight:300;font-size:14px">${t("noneCompleted")}</span>`;
     return;
   }
   const byId=new Map(state.colors.map(c=>[c.id,c]));
@@ -566,8 +647,8 @@ function renderCompleted(){
     if(cols.length){
       mini=`<span class="mini">${grannyHtml(cols,30)}</span>`;
     }
-    const miss = missing ? `<span class="miss">+${missing} disatt.</span>` : "";
-    chip.innerHTML=`${mini}${miss}<span class="x" data-key="${key}" title="Rimuovi dai completati">✕</span>`;
+    const miss = missing ? `<span class="miss">${t("chipMiss",missing)}</span>` : "";
+    chip.innerHTML=`${mini}${miss}<span class="x" data-key="${key}" title="${t("chipRemove")}">✕</span>`;
     frag.appendChild(chip);
   });
   wrap.appendChild(frag);
@@ -583,7 +664,7 @@ document.getElementById("colorList").addEventListener("click",e=>{
     state.colors[i].enabled=!state.colors[i].enabled;
     save(); renderColors(); state.page=0; renderCombos();
   } else if(act==="del"){
-    if(!confirm("Eliminare questo colore? I granny square già completati con questo colore restano salvati.")) return;
+    if(!confirm(t("delColor"))) return;
     state.colors.splice(i,1);
     save(); renderColors(); state.page=0; renderCombos();
   }
@@ -605,7 +686,7 @@ document.getElementById("colorList").addEventListener("input",e=>{
   }
 });
 document.getElementById("addBtn").addEventListener("click",()=>{
-  state.colors.push({id:nextId(),name:"Colore "+(state.colors.length+1),r:130,g:120,b:110,enabled:true});
+  state.colors.push({id:nextId(),name:t("newColor",(state.colors.length+1)),r:130,g:120,b:110,enabled:true});
   save(); renderColors(); state.page=0; renderCombos();
 });
 document.getElementById("randomBtn").addEventListener("click",()=>{
@@ -632,7 +713,7 @@ document.getElementById("pageSize").addEventListener("change",e=>{
   state.page=0; renderCombos();
 });
 function resetBtnHandler(){
-  if(!confirm("Azzerare TUTTO (colori e completati)?")) return;
+  if(!confirm(t("resetConfirm"))) return;
   localStorage.removeItem(STORE_KEY);
   state.colors=[]; state.done={}; uid=1; seed();
   state.page=0; state.filter="all";
@@ -649,7 +730,7 @@ function cloudStatus(msg, kind){
 document.getElementById("cloudBtn").addEventListener("click",()=>{
   const c=readCreds();
   if(c){ document.getElementById("sbUrl").value=c.url; document.getElementById("sbKey").value=c.key; }
-  cloudStatus(supaConnected?"Connesso.":"", supaConnected?"ok":"");
+  cloudStatus(supaConnected?t("cloudConnected"):"", supaConnected?"ok":"");
   document.getElementById("cloudOverlay").classList.add("show");
 });
 document.getElementById("cloudClose").addEventListener("click",()=>{
@@ -660,40 +741,48 @@ document.getElementById("cloudOverlay").addEventListener("click",e=>{
 });
 document.getElementById("cloudClear").addEventListener("click",()=>{
   writeCreds(null); supa=null; supaConnected=false; supaRow=null; setCloudDot("");
-  cloudStatus("Disconnesso. I dati restano salvati solo in questo browser.", "");
+  cloudStatus(t("cloudDisconnected"), "");
 });
 document.getElementById("cloudTest").addEventListener("click",async()=>{
   const url=document.getElementById("sbUrl").value.trim();
   const key=document.getElementById("sbKey").value.trim();
-  cloudStatus("Provo la connessione…", "");
+  cloudStatus(t("cloudTesting"), "");
   const ok=await connectSupabase({url,key});
   if(ok){
-    const n = supaRow && supaRow.data ? "(trovato stato remoto)" : "(tabella vuota: la prima sincronizzazione creerà il record)";
-    cloudStatus("Connessione riuscita "+n+".", "ok");
+    cloudStatus(supaRow && supaRow.data ? t("cloudOkFound") : t("cloudOkEmpty"), "ok");
   } else {
-    cloudStatus("Connessione fallita. Controlla URL, anon key e di aver eseguito lo script SQL (vedi istruzioni).", "err");
+    cloudStatus(t("cloudFail"), "err");
   }
 });
 document.getElementById("cloudSave").addEventListener("click",async()=>{
   const url=document.getElementById("sbUrl").value.trim();
   const key=document.getElementById("sbKey").value.trim();
-  if(!url||!key){ cloudStatus("Inserisci URL e anon key.", "err"); return; }
-  cloudStatus("Connessione in corso…", "");
+  if(!url||!key){ cloudStatus(t("cloudEnter"), "err"); return; }
+  cloudStatus(t("cloudConnecting"), "");
   const ok=await connectSupabase({url,key});
-  if(!ok){ cloudStatus("Connessione fallita. Controlla URL, anon key e di aver eseguito lo script SQL.", "err"); return; }
-  cloudStatus("Sincronizzo…", "");
+  if(!ok){ cloudStatus(t("cloudFail2"), "err"); return; }
+  cloudStatus(t("cloudSyncing"), "");
   await cloudPull();
   await cloudPush();
-  cloudStatus("Sincronizzato. Dati permanenti e condivisi tra dispositivi.", "ok");
+  cloudStatus(t("cloudSynced"), "ok");
   renderColors(); renderCombos();
   setTimeout(()=>document.getElementById("cloudOverlay").classList.remove("show"), 900);
 });
 
 // ---------- init ----------
+applyLang();
 load();
 document.querySelectorAll(".filter").forEach(x=>x.classList.toggle("active",x.dataset.f=="all"));
 renderColors();
 renderCombos();
+document.getElementById("langSwitch").addEventListener("click",e=>{
+  const b=e.target.closest("button[data-lang]");
+  if(!b) return;
+  LANG=b.dataset.lang;
+  localStorage.setItem(LANG_KEY, LANG);
+  applyLang();
+  renderColors(); renderCombos();
+});
 (async()=>{
   const c=readCreds();
   if(c){
