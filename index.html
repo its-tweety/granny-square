@@ -6,7 +6,7 @@
 <title>Granny Square — Combinazioni Colori</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#f4efe7; --bg2:#efe8dd;
@@ -24,10 +24,10 @@
   html,body{height:100%}
   body{
     margin:0;
-    font-family:"Fraunces",Georgia,"Times New Roman",serif;
+    font-family:"Newsreader",Georgia,"Times New Roman",serif;
     background:radial-gradient(1200px 600px at 80% -10%,#fff8ee 0,transparent 60%),var(--bg);
     color:var(--ink);line-height:1.5;
-    font-optical-sizing:auto;font-variation-settings:"opsz" 14,"SOFT" 50;
+    font-optical-sizing:auto;
     -webkit-font-smoothing:antialiased;
   }
   ::selection{background:var(--accent);color:var(--accent-ink)}
@@ -37,11 +37,11 @@
     border-bottom:1px solid var(--line);box-shadow:var(--shadow);
     display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
   }
-  header h1{margin:0;font-size:22px;font-weight:500;letter-spacing:.2px;
-    font-variation-settings:"opsz" 40,"SOFT" 80;font-style:italic;line-height:1;
-    display:flex;align-items:center;gap:10px}
+  header h1{margin:0;font-size:24px;font-weight:400;letter-spacing:.2px;
+    font-family:"DM Serif Display",Georgia,serif;font-style:italic;line-height:1;
+    display:flex;align-items:center;gap:11px}
   header h1 .amp{color:var(--accent);font-style:italic}
-  header h1 .logo{width:24px;height:24px;flex:none;color:var(--accent)}
+  header h1 .logo{width:22px;height:22px;flex:none}
   header h1 .logo svg{display:block;width:100%;height:100%}
   header .row-actions{display:flex;gap:8px;align-items:center}
   .cloud-dot{width:9px;height:9px;border-radius:50%;background:#cfc4b0;border:1px solid var(--line);display:inline-block;flex:none}
@@ -61,8 +61,8 @@
   @media(max-width:900px){#leftPanel{position:static;top:auto}}
   .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
     padding:22px;box-shadow:var(--shadow);min-width:0}
-  .panel h2{margin:0 0 16px;font-size:20px;font-weight:400;letter-spacing:.4px;
-    font-style:italic;color:var(--ink);position:relative}
+  .panel h2{margin:0 0 16px;font-size:22px;font-weight:400;letter-spacing:.3px;
+    font-family:"DM Serif Display",Georgia,serif;font-style:italic;color:var(--ink);position:relative}
   .panel h2::after{content:"";display:block;width:34px;height:2px;background:var(--accent);
     margin-top:8px;border-radius:2px;opacity:.7}
   .panel h2 .count{font-style:normal;font-size:13px;color:var(--muted);margin-left:6px;font-weight:300}
@@ -117,7 +117,7 @@
   .overlay.show{display:flex}
   .modal{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:26px;
     width:min(440px,100%);box-shadow:var(--shadow-lift)}
-  .modal h2{margin:0 0 6px;font-size:22px;font-weight:400;font-style:italic}
+  .modal h2{margin:0 0 6px;font-size:24px;font-weight:400;font-family:"DM Serif Display",Georgia,serif;font-style:italic}
   .modal .desc{color:var(--ink-soft);font-size:13px;font-weight:300;margin:0 0 18px;line-height:1.6}
   .modal label{display:block;font-size:13px;color:var(--ink-soft);margin:12px 0 4px;font-weight:400}
   .modal input[type=text],.modal input[type=password]{width:100%;border:1px solid var(--line);
@@ -197,7 +197,7 @@
 <body>
 <header>
   <div>
-    <h1><span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21c2.5-3 5.5-4.5 9-4.5"/><path d="M12 16.5C12 10 15 4.5 21 3"/><circle cx="3" cy="21" r="1.4" fill="currentColor" stroke="none"/></svg></span> Granny Square</h1>
+    <h1><span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="20" height="20" rx="3" fill="#a8543a"/><rect x="5.5" y="5.5" width="13" height="13" rx="2" fill="#b08a4a"/><rect x="9" y="9" width="6" height="6" rx="1.5" fill="#5f7a4e"/></svg></span> Granny Square</h1>
   </div>
   <div class="row-actions">
     <div class="lang-switch" id="langSwitch" role="group" aria-label="Language">
