@@ -494,13 +494,12 @@ function permutations(arr){
 function grannyHtml(perm, size){
   const n=perm.length;
   if(n===0) return "";
-  let inner="";
-  for(let k=n-1;k>=0;k--){
-    const col=perm[k];
-    const side = ((1 - k/n)*100).toFixed(2);
-    inner = `<div class="ring" style="width:${side}%;background:${hex(col)}">${inner}</div>`;
+  let rings="";
+  for(let k=0;k<n;k++){
+    const side = (100 - (k*100/n)).toFixed(3);
+    rings += `<div class="ring" style="width:${side}%;background:${hex(perm[k])}"></div>`;
   }
-  return `<div class="granny" style="max-width:${size}px">${inner}</div>`;
+  return `<div class="granny" style="max-width:${size}px">${rings}</div>`;
 }
 
 // ---------- render colors ----------
