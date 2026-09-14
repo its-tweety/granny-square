@@ -214,7 +214,6 @@
     <div id="colorList"></div>
     <div class="add-color row-actions">
       <button class="btn primary sm" id="addBtn" data-i18n="addColor"></button>
-      <button class="btn sm" id="randomBtn" data-i18n="random"></button>
     </div>
     <p class="hint" data-i18n="hint"></p>
   </section>
@@ -275,10 +274,10 @@ let PAGE_SIZE = 120;
 let LANG = localStorage.getItem(LANG_KEY) || "it";
 const I18N = {
   it:{
-    colors:"Colori", addColor:"+ Aggiungi colore", random:"Random",
+    colors:"Colori", addColor:"+ Aggiungi colore",
     hint:"Il numero di giri equivale al numero di colori attivi. Disattiva un colore per ridurre i giri di uno: le combinazioni si ricalcolano, ma i granny square già completati restano salvati.",
     fAll:"Tutti", fTodo:"Da fare", fDone:"Completati", perPage:"per pagina", pageSizeTitle:"Combinazioni per pagina",
-    counter:(n,total,done)=>`<b>${n}</b> colori attivi → <b>${n}</b> giri · <b>${total}</b> combinazioni · <b>${done}</b> completate`,
+    counter:(n,total)=>`<b>${n}</b> colori attivi → <b>${n}</b> giri · <b>${total}</b> combinazioni`,
     pageOf:(cur,pages,start,end,len)=>`${cur} / ${pages}  ·  pagina ${start}–${end} di ${len}`,
     doneLabel:"✓ Completato", markDone:"Segna completato",
     emptyActive:"Nessun colore attivo. Attiva almeno un colore per vedere le combinazioni.",
@@ -303,10 +302,10 @@ const I18N = {
     cloudFail2:"Connessione fallita. Controlla URL, anon key e di aver eseguito lo script SQL.",
   },
   en:{
-    colors:"Colors", addColor:"+ Add color", random:"Random",
+    colors:"Colors", addColor:"+ Add color",
     hint:"The number of rounds equals the number of active colors. Disable a colour to reduce the rounds by one: combinations are recalculated, but already completed granny squares stay saved.",
     fAll:"All", fTodo:"To do", fDone:"Completed", perPage:"per page", pageSizeTitle:"Combinations per page",
-    counter:(n,total,done)=>`<b>${n}</b> active colours → <b>${n}</b> rounds · <b>${total}</b> combinations · <b>${done}</b> completed`,
+    counter:(n,total)=>`<b>${n}</b> active colours → <b>${n}</b> rounds · <b>${total}</b> combinations`,
     pageOf:(cur,pages,start,end,len)=>`${cur} / ${pages}  ·  page ${start}–${end} of ${len}`,
     doneLabel:"✓ Completed", markDone:"Mark complete",
     emptyActive:"No active colour. Activate at least one colour to see combinations.",
@@ -577,12 +576,11 @@ function renderCombos(){
   }
 
   const total=allCombos.length;
-  const doneCount=savedDone.length;
   const loc = LANG==="it"?"it-IT":"en-US";
   if(state.filter=="done"){
-    counter.innerHTML = `<b>${doneCount}</b> ${t("doneCount")}`;
+    counter.innerHTML = `<b>${savedDone.length}</b> ${t("doneCount")}`;
   } else {
-    counter.innerHTML=t("counter", n, total.toLocaleString(loc), doneCount);
+    counter.innerHTML=t("counter", n, total.toLocaleString(loc));
   }
 
   const pages=Math.ceil(combos.length/PAGE_SIZE)||1;
@@ -668,12 +666,6 @@ document.getElementById("colorList").addEventListener("input",e=>{
 document.getElementById("addBtn").addEventListener("click",()=>{
   state.colors.push({id:nextId(),name:t("newColor",(state.colors.length+1)),r:130,g:120,b:110,enabled:true});
   save(); renderColors(); state.page=0; renderCombos();
-});
-document.getElementById("randomBtn").addEventListener("click",()=>{
-  if(state.colors.length===0) return;
-  const last=state.colors[state.colors.length-1];
-  last.r=Math.floor(Math.random()*256); last.g=Math.floor(Math.random()*256); last.b=Math.floor(Math.random()*256);
-  save(); renderColors(); renderCombos();
 });
 document.querySelectorAll(".filter").forEach(b=>{
   b.addEventListener("click",()=>{
