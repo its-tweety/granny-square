@@ -41,6 +41,10 @@
     font-variation-settings:"opsz" 60,"SOFT" 100;font-style:italic}
   header h1 .amp{color:var(--accent);font-style:italic}
   header .row-actions{display:flex;gap:8px;align-items:center}
+  .cloud-dot{width:9px;height:9px;border-radius:50%;background:#cfc4b0;border:1px solid var(--line);display:inline-block;flex:none}
+  .cloud-dot.on{background:var(--ok);border-color:var(--ok)}
+  .cloud-dot.err{background:var(--accent);border-color:var(--accent)}
+  .cloud-btn{display:flex;align-items:center;gap:7px}
 
   main{display:grid;grid-template-columns:330px 1fr;gap:22px;padding:24px;max-width:1440px;margin:0 auto;align-items:start}
   @media(max-width:900px){main{grid-template-columns:1fr}}
@@ -99,6 +103,24 @@
   select.psize:focus{outline:none;border-color:var(--accent)}
   .plabel{font-size:13px;color:var(--muted);font-weight:300;letter-spacing:.2px}
 
+  /* cloud modal */
+  .overlay{position:fixed;inset:0;background:rgba(40,34,28,.45);backdrop-filter:blur(3px);
+    display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
+  .overlay.show{display:flex}
+  .modal{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:26px;
+    width:min(440px,100%);box-shadow:var(--shadow-lift)}
+  .modal h2{margin:0 0 6px;font-size:22px;font-weight:400;font-style:italic}
+  .modal .desc{color:var(--ink-soft);font-size:13px;font-weight:300;margin:0 0 18px;line-height:1.6}
+  .modal label{display:block;font-size:13px;color:var(--ink-soft);margin:12px 0 4px;font-weight:400}
+  .modal input[type=text],.modal input[type=password]{width:100%;border:1px solid var(--line);
+    border-radius:10px;padding:9px 11px;font-family:inherit;font-size:14px;color:var(--ink);background:var(--panel-2)}
+  .modal input:focus{outline:none;border-color:var(--accent)}
+  .modal .mrow{display:flex;gap:8px;margin-top:18px;flex-wrap:wrap}
+  .modal .mlink{display:block;margin-top:12px;font-size:12px;color:var(--accent);text-decoration:none}
+  .modal .mlink:hover{text-decoration:underline}
+  .modal .status{font-size:12px;color:var(--muted);margin-top:10px;font-weight:300;min-height:14px}
+  .modal .status.ok{color:var(--ok)} .modal .status.err{color:var(--accent)}
+
   /* Combinations grid */
   #comboWrap{margin-top:18px}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px}
@@ -144,6 +166,9 @@
     <h1>Granny Square <span class="amp">·</span> Combinazioni</h1>
   </div>
   <div class="row-actions">
+    <button class="btn cloud-btn" id="cloudBtn" title="Sincronizzazione cloud Supabase">
+      <span class="cloud-dot" id="cloudDot"></span> Cloud
+    </button>
     <button class="btn" id="resetBtn" title="Azzera tutto (colori e completati)">Azzera dati</button>
   </div>
 </header>
@@ -190,6 +215,26 @@
   </section>
 </main>
 
+<div class="overlay" id="cloudOverlay">
+  <div class="modal">
+    <h2>Sincronizzazione cloud</h2>
+    <p class="desc">Salva colori e granny square completati su Supabase: restano permanenti e sincronizzati tra dispositivi. Le credenziali restano solo in questo browser.</p>
+    <label for="sbUrl">Project URL</label>
+    <input type="text" id="sbUrl" placeholder="https://xxxxxxxx.supabase.co" autocomplete="off">
+    <label for="sbKey">anon / public key</label>
+    <input type="password" id="sbKey" placeholder="eyJhbGciOi..." autocomplete="off">
+    <div class="status" id="cloudStatus"></div>
+    <div class="mrow">
+      <button class="btn primary sm" id="cloudSave">Connetti e sincronizza</button>
+      <button class="btn sm" id="cloudTest">Solo prova</button>
+      <button class="btn sm" id="cloudClear">Disconnetti</button>
+      <button class="btn sm" id="cloudClose">Chiudi</button>
+    </div>
+    <a class="mlink" href="https://supabase.com/dashboard" target="_blank" rel="noopener">Crea un progetto su supabase.com →</a>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 "use strict";
 const STORE_KEY = "grannySquares.v1";
@@ -205,8 +250,13 @@ const state = {
 let uid = 1;
 function nextId(){ return "c"+(uid++); }
 
-// ---------- persistence ----------
-function load(){
+let supa = null;          // supabase client
+let supaConnected = false;
+let supaRow = null;       // cached remote row
+let syncTimer = null;
+let syncing = false;      // guard against pull/push recursion
+
+function localLoad(){
   try{
     const raw = localStorage.getItem(STORE_KEY);
     if(raw){
@@ -214,13 +264,21 @@ function load(){
       state.colors = d.colors || [];
       state.done = d.done || {};
       uid = d.uid || (state.colors.reduce((m,c)=>Math.max(m,parseInt((c.id||"c1").slice(1))||1),1)+1);
-      return;
+      return true;
     }
   }catch(e){ console.warn("load failed", e); }
-  seed();
+  return false;
+}
+function localSave(){
+  localStorage.setItem(STORE_KEY, JSON.stringify({colors:state.colors, done:state.done, uid}));
+}
+// ---------- persistence ----------
+function load(){
+  if(!localLoad()) seed();
 }
 function save(){
-  localStorage.setItem(STORE_KEY, JSON.stringify({colors:state.colors, done:state.done, uid}));
+  localSave();
+  scheduleCloudPush();
 }
 function seed(){
   const palette = [
@@ -232,7 +290,73 @@ function seed(){
     {name:"Prugna",   rgb:[120,78,120]},
   ];
   state.colors = palette.map(p=>({id:nextId(),name:p.name,r:p.rgb[0],g:p.rgb[1],b:p.rgb[2],enabled:true}));
-  save();
+  localSave();
+}
+
+// ---------- Supabase ----------
+const SB_KEY = "grannySquares.supabase";
+const TABLE = "granny_state";
+const PK = "id";
+const ROW_ID = "single";
+
+function readCreds(){ try{ return JSON.parse(localStorage.getItem(SB_KEY) || "null"); }catch(e){ return null; } }
+function writeCreds(c){ if(c) localStorage.setItem(SB_KEY, JSON.stringify(c)); else localStorage.removeItem(SB_KEY); }
+function setCloudDot(s){
+  const dot=document.getElementById("cloudDot");
+  if(!dot) return;
+  dot.classList.toggle("on", s==="on"); dot.classList.toggle("err", s==="err");
+}
+async function connectSupabase(creds){
+  if(!window.supabase || !creds || !creds.url || !creds.key) return false;
+  try{
+    supa = window.supabase.createClient(creds.url, creds.key);
+    const { data, error } = await supa.from(TABLE).select("*").eq(PK, ROW_ID).maybeSingle();
+    if(error) throw error;
+    supaConnected = true; supaRow = data;
+    writeCreds(creds); setCloudDot("on");
+    return true;
+  }catch(e){
+    supaConnected=false; supa=null; setCloudDot("err");
+    return false;
+  }
+}
+function applyRemote(d){
+  if(!d || !d.data) return;
+  let r; try{ r = typeof d.data === "string" ? JSON.parse(d.data) : d.data; }catch(e){ return; }
+  if(!r || typeof r !== "object") return;
+  if(Array.isArray(r.colors)) state.colors = r.colors;
+  if(r.done && typeof r.done === "object") state.done = r.done;
+  if(typeof r.uid === "number") uid = r.uid;
+  localSave();
+}
+async function cloudPull(){
+  if(!supaConnected || !supa) return;
+  syncing = true;
+  try{
+    const { data, error } = await supa.from(TABLE).select("*").eq(PK, ROW_ID).maybeSingle();
+    if(error) throw error;
+    supaRow = data;
+    if(data && data.data){ applyRemote(data); renderColors(); renderCombos(); }
+  }catch(e){ console.warn("pull failed", e); setCloudDot("err"); }
+  finally{ syncing = false; }
+}
+async function cloudPush(){
+  if(!supaConnected || !supa) return;
+  if(syncing) return;
+  syncing = true;
+  try{
+    const payload = { colors: state.colors, done: state.done, uid };
+    const body = { [PK]: ROW_ID, data: payload, updated_at: new Date().toISOString() };
+    const { data, error } = await supa.from(TABLE).upsert(body).select().maybeSingle();
+    if(error) throw error;
+    supaRow = data; setCloudDot("on");
+  }catch(e){ console.warn("push failed", e); setCloudDot("err"); }
+  finally{ syncing = false; }
+}
+function scheduleCloudPush(){
+  if(!supaConnected) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(cloudPush, 800);
 }
 
 // ---------- helpers ----------
@@ -470,20 +594,76 @@ document.getElementById("pageSize").addEventListener("change",e=>{
   PAGE_SIZE=+e.target.value;
   state.page=0; renderCombos();
 });
-document.getElementById("resetBtn").addEventListener("click",()=>{
+function resetBtnHandler(){
   if(!confirm("Azzerare TUTTO (colori e completati)?")) return;
   localStorage.removeItem(STORE_KEY);
   state.colors=[]; state.done={}; uid=1; seed();
   state.page=0; state.filter="all";
   document.querySelectorAll(".filter").forEach(x=>x.classList.toggle("active",x.dataset.f==="all"));
   renderColors(); renderCombos();
+}
+document.getElementById("resetBtn").addEventListener("click",resetBtnHandler);
+
+// ---------- cloud modal ----------
+function cloudStatus(msg, kind){
+  const s=document.getElementById("cloudStatus");
+  s.textContent=msg||""; s.className="status"+(kind?" "+kind:"");
+}
+document.getElementById("cloudBtn").addEventListener("click",()=>{
+  const c=readCreds();
+  if(c){ document.getElementById("sbUrl").value=c.url; document.getElementById("sbKey").value=c.key; }
+  cloudStatus(supaConnected?"Connesso.":"", supaConnected?"ok":"");
+  document.getElementById("cloudOverlay").classList.add("show");
+});
+document.getElementById("cloudClose").addEventListener("click",()=>{
+  document.getElementById("cloudOverlay").classList.remove("show");
+});
+document.getElementById("cloudOverlay").addEventListener("click",e=>{
+  if(e.target.id=="cloudOverlay") document.getElementById("cloudOverlay").classList.remove("show");
+});
+document.getElementById("cloudClear").addEventListener("click",()=>{
+  writeCreds(null); supa=null; supaConnected=false; supaRow=null; setCloudDot("");
+  cloudStatus("Disconnesso. I dati restano salvati solo in questo browser.", "");
+});
+document.getElementById("cloudTest").addEventListener("click",async()=>{
+  const url=document.getElementById("sbUrl").value.trim();
+  const key=document.getElementById("sbKey").value.trim();
+  cloudStatus("Provo la connessione…", "");
+  const ok=await connectSupabase({url,key});
+  if(ok){
+    const n = supaRow && supaRow.data ? "(trovato stato remoto)" : "(tabella vuota: la prima sincronizzazione creerà il record)";
+    cloudStatus("Connessione riuscita "+n+".", "ok");
+  } else {
+    cloudStatus("Connessione fallita. Controlla URL, anon key e di aver eseguito lo script SQL (vedi istruzioni).", "err");
+  }
+});
+document.getElementById("cloudSave").addEventListener("click",async()=>{
+  const url=document.getElementById("sbUrl").value.trim();
+  const key=document.getElementById("sbKey").value.trim();
+  if(!url||!key){ cloudStatus("Inserisci URL e anon key.", "err"); return; }
+  cloudStatus("Connessione in corso…", "");
+  const ok=await connectSupabase({url,key});
+  if(!ok){ cloudStatus("Connessione fallita. Controlla URL, anon key e di aver eseguito lo script SQL.", "err"); return; }
+  cloudStatus("Sincronizzo…", "");
+  await cloudPull();
+  await cloudPush();
+  cloudStatus("Sincronizzato. Dati permanenti e condivisi tra dispositivi.", "ok");
+  renderColors(); renderCombos();
+  setTimeout(()=>document.getElementById("cloudOverlay").classList.remove("show"), 900);
 });
 
 // ---------- init ----------
 load();
-document.querySelectorAll(".filter").forEach(x=>x.classList.toggle("active",x.dataset.f==="all"));
+document.querySelectorAll(".filter").forEach(x=>x.classList.toggle("active",x.dataset.f=="all"));
 renderColors();
 renderCombos();
+(async()=>{
+  const c=readCreds();
+  if(c){
+    const ok=await connectSupabase(c);
+    if(ok){ await cloudPull(); renderColors(); renderCombos(); }
+  }
+})();
 </script>
 </body>
 </html>
