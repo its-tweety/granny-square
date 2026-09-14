@@ -40,12 +40,13 @@
   header h1{margin:0;font-size:30px;font-weight:500;letter-spacing:.2px;
     font-variation-settings:"opsz" 60,"SOFT" 100;font-style:italic}
   header h1 .amp{color:var(--accent);font-style:italic}
-  header .sub{color:var(--ink-soft);font-size:15px;margin-top:4px;font-weight:300;letter-spacing:.3px}
   header .row-actions{display:flex;gap:8px;align-items:center}
 
-  main{display:grid;grid-template-columns:330px 1fr;gap:22px;padding:24px;max-width:1440px;margin:0 auto}
+  main{display:grid;grid-template-columns:330px 1fr;gap:22px;padding:24px;max-width:1440px;margin:0 auto;align-items:start}
   @media(max-width:900px){main{grid-template-columns:1fr}}
 
+  #leftPanel{position:sticky;top:24px}
+  @media(max-width:900px){#leftPanel{position:static;top:auto}}
   .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
     padding:22px;box-shadow:var(--shadow)}
   .panel h2{margin:0 0 16px;font-size:20px;font-weight:400;letter-spacing:.4px;
@@ -85,13 +86,18 @@
     border-top:1px solid var(--line-soft);padding-top:12px}
 
   /* Stats / filters */
-  .stats{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+  .stats{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
   #counter{font-size:14px;color:var(--ink-soft);font-weight:300;letter-spacing:.2px}
   #counter b{font-weight:500;color:var(--ink);font-style:italic}
+  .controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
   .filters{display:flex;gap:6px;flex-wrap:wrap}
   .filters .btn.active{background:linear-gradient(180deg,var(--accent-soft),var(--accent));
     color:var(--accent-ink);border-color:var(--accent)}
   .filters .btn.active:hover{filter:brightness(1.05)}
+  select.psize{font-family:inherit;font-size:13px;color:var(--ink);background:var(--panel);
+    border:1px solid var(--line);border-radius:10px;padding:6px 8px;cursor:pointer}
+  select.psize:focus{outline:none;border-color:var(--accent)}
+  .plabel{font-size:13px;color:var(--muted);font-weight:300;letter-spacing:.2px}
 
   /* Combinations grid */
   #comboWrap{margin-top:18px}
@@ -139,7 +145,6 @@
 <header>
   <div>
     <h1>Granny Square <span class="amp">·</span> Combinazioni</h1>
-    <div class="sub">Ogni giro un colore diverso — permutazioni dei colori attivi</div>
   </div>
   <div class="row-actions">
     <button class="btn" id="resetBtn" title="Azzera tutto (colori e completati)">Azzera dati</button>
@@ -160,10 +165,20 @@
   <section class="panel">
     <div class="stats">
       <div id="counter"></div>
-      <div class="filters">
-        <button class="btn sm filter" data-f="all">Tutte</button>
-        <button class="btn sm filter" data-f="todo">Da fare</button>
-        <button class="btn sm filter" data-f="done">Completate</button>
+      <div class="controls">
+        <div class="filters">
+          <button class="btn sm filter" data-f="all">Tutte</button>
+          <button class="btn sm filter" data-f="todo">Da fare</button>
+          <button class="btn sm filter" data-f="done">Completate</button>
+        </div>
+        <span class="plabel">per pagina</span>
+        <select class="psize" id="pageSize" title="Combinazioni per pagina">
+          <option value="24">24</option>
+          <option value="48">48</option>
+          <option value="120" selected>120</option>
+          <option value="240">240</option>
+          <option value="500">500</option>
+        </select>
       </div>
     </div>
     <div id="comboWrap">
@@ -178,12 +193,10 @@
   </section>
 </main>
 
-<div class="foot">Fraunces · tipografia di Phaedra Charles &amp; Flavia Zimbardi · i tuoi dati restano solo in questo browser.</div>
-
 <script>
 "use strict";
 const STORE_KEY = "grannySquares.v1";
-const PAGE_SIZE = 120;
+let PAGE_SIZE = 120;
 
 const state = {
   colors: [],
@@ -454,6 +467,10 @@ document.querySelectorAll(".filter").forEach(b=>{
     document.querySelectorAll(".filter").forEach(x=>x.classList.toggle("active",x===b));
     state.page=0; renderCombos();
   });
+});
+document.getElementById("pageSize").addEventListener("change",e=>{
+  PAGE_SIZE=+e.target.value;
+  state.page=0; renderCombos();
 });
 document.getElementById("resetBtn").addEventListener("click",()=>{
   if(!confirm("Azzerare TUTTO (colori e completati)?")) return;
