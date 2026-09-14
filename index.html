@@ -134,8 +134,10 @@
   .square .badge{position:absolute;top:10px;right:10px;font-size:15px;color:var(--ok);
     opacity:0;transform:scale(.6);transition:.18s}
 
-  /* Concentric granny square */
-  .granny{position:relative;display:flex;align-items:center;justify-content:center}
+  /* Concentric granny square (fluid, scales to container) */
+  .granny{position:relative;width:100%;aspect-ratio:1/1;display:flex;
+    align-items:center;justify-content:center;margin:0 auto}
+  .granny .ring{aspect-ratio:1/1;align-self:center;justify-self:center}
   .ring{position:relative;display:flex;align-items:center;justify-content:center;
     box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
 
@@ -173,7 +175,7 @@
     header{flex-direction:row;flex-wrap:wrap;align-items:center}
     header h1{font-size:21px;flex:1 1 100%}
     header .row-actions{flex:1 1 auto;justify-content:flex-end}
-    .grid{grid-template-columns:repeat(auto-fill,minmax(46vw,1fr));gap:10px}
+    .grid{grid-template-columns:repeat(2,1fr);gap:10px}
     .modal{padding:20px}
     .color-row{gap:8px}
     .crgb{font-size:10px}
@@ -185,6 +187,10 @@
     .toggle{width:50px;height:28px}
     .toggle::after{width:22px;height:22px}
     .toggle.on::after{left:26px}
+    .square{padding:9px}
+  }
+  @media(max-width:380px){
+    .grid{grid-template-columns:1fr}
   }
   /* tap targets: larger touch areas on small screens */
   @media(hover:none) and (pointer:coarse){
@@ -426,15 +432,13 @@ function permutations(arr){
 function grannyHtml(perm, size){
   const n=perm.length;
   if(n===0) return "";
-  const S=size;
-  const t=S/(2*n);                 // band thickness
   let inner="";
   for(let k=n-1;k>=0;k--){
     const col=perm[k];
-    const side=Math.max(S - 2*k*t, 2);
-    inner = `<div class="ring" style="width:${side.toFixed(1)}px;height:${side.toFixed(1)}px;background:${hex(col)}">${inner}</div>`;
+    const side = ((1 - k/n)*100).toFixed(2);
+    inner = `<div class="ring" style="width:${side}%;height:${side}%;background:${hex(col)}">${inner}</div>`;
   }
-  return `<div class="granny" style="width:${S}px;height:${S}px">${inner}</div>`;
+  return `<div class="granny" style="max-width:${size}px">${inner}</div>`;
 }
 
 // ---------- render colors ----------
