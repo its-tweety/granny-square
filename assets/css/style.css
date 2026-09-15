@@ -41,7 +41,7 @@
   .cloud-btn{display:flex;align-items:center;gap:7px}
   .lang-switch{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;flex:none}
   .lang-switch button{border:none;background:var(--panel);color:var(--ink-soft);font-family:inherit;
-    font-size:12px;font-weight:500;letter-spacing:.3px;padding:5px 9px;cursor:pointer;transition:.15s}
+    font-size:13px;font-weight:400;letter-spacing:.2px;padding:6px 11px;cursor:pointer;transition:.15s}
   .lang-switch button+button{border-left:1px solid var(--line)}
   .lang-switch button.active{background:linear-gradient(180deg,var(--accent-soft),var(--accent));color:var(--accent-ink)}
 
