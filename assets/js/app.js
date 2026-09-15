@@ -70,6 +70,41 @@ const state = {
 let uid = 1;
 function nextId(){ return "c"+(uid++); }
 
+// ---------- persistence ----------
+function localLoad(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(raw){
+      const d = JSON.parse(raw);
+      state.colors = d.colors || [];
+      state.done = d.done || {};
+      uid = d.uid || (state.colors.reduce((m,c)=>Math.max(m,parseInt((c.id||"c1").slice(1))||1),1)+1);
+      return true;
+    }
+  }catch(e){ console.warn("load failed", e); }
+  return false;
+}
+function localSave(){
+  localStorage.setItem(STORE_KEY, JSON.stringify({colors:state.colors, done:state.done, uid}));
+}
+function load(){
+  if(!localLoad()) seed();
+}
+function save(){
+  localSave();
+}
+function seed(){
+  const palette = [
+    {name:"Bordeaux", rgb:[150,40,50]},
+    {name:"Zafferano", rgb:[214,150,40]},
+    {name:"Crema",    rgb:[238,222,188]},
+    {name:"Salvia",   rgb:[120,158,110]},
+    {name:"Lago",     rgb:[86,128,150]},
+    {name:"Prugna",   rgb:[120,78,120]},
+  ];
+  state.colors = palette.map(p=>({id:nextId(),name:p.name,r:p.rgb[0],g:p.rgb[1],b:p.rgb[2],enabled:true}));
+  localSave();
+}
 
 // ---------- helpers ----------
 const active = ()=> state.colors.filter(c=>c.enabled);
