@@ -35,11 +35,15 @@
   header h1 .logo{width:22px;height:22px;flex:none}
   header h1 .logo svg{display:block;width:100%;height:100%}
   header .row-actions{display:flex;gap:8px;align-items:center}
-  .lang-switch{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;flex:none}
+  .lang-switch{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;flex:none}
   .lang-switch button{border:none;background:var(--panel);color:var(--ink-soft);font-family:inherit;
-    font-size:12px;font-weight:500;letter-spacing:.3px;padding:5px 9px;cursor:pointer;transition:.15s}
+    font-size:13px;font-weight:400;letter-spacing:.2px;padding:6px 12px;cursor:pointer;transition:.15s}
   .lang-switch button+button{border-left:1px solid var(--line)}
   .lang-switch button.active{background:linear-gradient(180deg,var(--accent-soft),var(--accent));color:var(--accent-ink)}
+  .pill{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;flex:none}
+  .pill .btn{border:none;border-radius:0;background:var(--panel)}
+  .pill .btn+.btn{border-left:1px solid var(--line)}
+  .pill .btn:hover{background:var(--panel-2)}
 
   main{display:grid;grid-template-columns:330px 1fr;gap:22px;padding:24px;max-width:1440px;margin:0 auto;align-items:start}
   @media(max-width:900px){main{grid-template-columns:1fr}}
