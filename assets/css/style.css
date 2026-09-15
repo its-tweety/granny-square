@@ -35,10 +35,6 @@
   header h1 .logo{width:22px;height:22px;flex:none}
   header h1 .logo svg{display:block;width:100%;height:100%}
   header .row-actions{display:flex;gap:8px;align-items:center}
-  .cloud-dot{width:9px;height:9px;border-radius:50%;background:#cfc4b0;border:1px solid var(--line);display:inline-block;flex:none}
-  .cloud-dot.on{background:var(--ok);border-color:var(--ok)}
-  .cloud-dot.err{background:var(--accent);border-color:var(--accent)}
-  .cloud-btn{display:flex;align-items:center;gap:7px}
   .lang-switch{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;flex:none}
   .lang-switch button{border:none;background:var(--panel);color:var(--ink-soft);font-family:inherit;
     font-size:12px;font-weight:500;letter-spacing:.3px;padding:5px 9px;cursor:pointer;transition:.15s}
@@ -102,24 +98,6 @@
   select.psize:focus{outline:none;border-color:var(--accent)}
   .plabel{font-size:13px;color:var(--muted);font-weight:300;letter-spacing:.2px}
 
-  /* cloud modal */
-  .overlay{position:fixed;inset:0;background:rgba(40,34,28,.45);backdrop-filter:blur(3px);
-    display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
-  .overlay.show{display:flex}
-  .modal{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:26px;
-    width:min(440px,100%);box-shadow:var(--shadow-lift)}
-  .modal h2{margin:0 0 6px;font-size:24px;font-weight:400;font-family:"DM Serif Display",Georgia,serif;font-style:italic}
-  .modal .desc{color:var(--ink-soft);font-size:13px;font-weight:300;margin:0 0 18px;line-height:1.6}
-  .modal label{display:block;font-size:13px;color:var(--ink-soft);margin:12px 0 4px;font-weight:400}
-  .modal input[type=text],.modal input[type=password]{width:100%;border:1px solid var(--line);
-    border-radius:10px;padding:9px 11px;font-family:inherit;font-size:14px;color:var(--ink);background:var(--panel-2)}
-  .modal input:focus{outline:none;border-color:var(--accent)}
-  .modal .mrow{display:flex;gap:8px;margin-top:18px;flex-wrap:wrap}
-  .modal .mlink{display:block;margin-top:12px;font-size:12px;color:var(--accent);text-decoration:none}
-  .modal .mlink:hover{text-decoration:underline}
-  .modal .status{font-size:12px;color:var(--muted);margin-top:10px;font-weight:300;min-height:14px}
-  .modal .status.ok{color:var(--ok)} .modal .status.err{color:var(--accent)}
-
   /* Combinations grid */
   #comboWrap{margin-top:18px}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px}
@@ -160,7 +138,6 @@
     header h1{font-size:19px;flex:1 1 100%}
     header .row-actions{flex:1 1 auto;justify-content:flex-end}
     .grid{grid-template-columns:repeat(2,1fr);gap:10px}
-    .modal{padding:20px}
     .color-row{gap:8px}
     .crgb{font-size:10px}
     .stats{gap:10px}

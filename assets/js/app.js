@@ -22,18 +22,12 @@ const I18N = {
     toggleTitle:"Attiva/disattiva", delTitle:"Elimina", delColor:"Eliminare questo colore? I granny square già completati con questo colore restano salvati.",
     newColor:(n)=>"Colore "+n,
     reset:"Azzera dati", resetTitle:"Azzera tutto (colori e completati)", resetConfirm:"Azzerare TUTTO (colori e completati)?",
-    cloud:"Cloud", cloudTitle:"Sincronizzazione cloud Supabase",
-    cloudTitleModal:"Sincronizzazione cloud", cloudDesc:"Salva colori e granny square completati su Supabase: restano permanenti e sincronizzati tra dispositivi. Le credenziali restano solo in questo browser.",
+    export:"Esporta", exportTitle:"Scarica un file con i tuoi dati (colori e completati)",
+    import:"Importa", importTitle:"Carica un file dati esportato in precedenza",
+    importFail:"File non valido. Usa un file esportato da questa app.",
+
+
     sbUrlLabel:"Project URL", sbKeyLabel:"Publishable / anon key",
-    cloudSave:"Connetti e sincronizza", cloudTest:"Solo prova", cloudClear:"Disconnetti", cloudClose:"Chiudi",
-    cloudCreateLink:"Crea un progetto su supabase.com →",
-    cloudConnected:"Connesso.", cloudDisconnected:"Disconnesso. I dati restano salvati solo in questo browser.",
-    cloudTesting:"Provo la connessione…",
-    cloudOkFound:"Connessione riuscita (trovato stato remoto).", cloudOkEmpty:"Connessione riuscita (tabella vuota: la prima sincronizzazione creerà il record).",
-    cloudFail:"Connessione fallita. Controlla URL, anon key e di aver eseguito lo script SQL (vedi istruzioni).",
-    cloudEnter:"Inserisci URL e anon key.", cloudConnecting:"Connessione in corso…", cloudSyncing:"Sincronizzo…",
-    cloudSynced:"Sincronizzato. Dati permanenti e condivisi tra dispositivi.",
-    cloudFail2:"Connessione fallita. Controlla URL, anon key e di aver eseguito lo script SQL.",
   },
   en:{
     colors:"Colors", addColor:"+ Add color",
@@ -50,18 +44,12 @@ const I18N = {
     toggleTitle:"Enable/disable", delTitle:"Delete", delColor:"Delete this colour? Already completed granny squares with this colour stay saved.",
     newColor:(n)=>"Colour "+n,
     reset:"Reset data", resetTitle:"Reset all (colours and completed)", resetConfirm:"Reset ALL (colours and completed)?",
-    cloud:"Cloud", cloudTitle:"Supabase cloud sync",
-    cloudTitleModal:"Cloud sync", cloudDesc:"Save colours and completed granny squares to Supabase: they stay permanent and synced across devices. Credentials stay only in this browser.",
+    export:"Export", exportTitle:"Download a file with your data (colours and completed)",
+    import:"Import", importTitle:"Load a previously exported data file",
+    importFail:"Invalid file. Use a file exported from this app.",
+
+
     sbUrlLabel:"Project URL", sbKeyLabel:"Publishable / anon key",
-    cloudSave:"Connect and sync", cloudTest:"Test only", cloudClear:"Disconnect", cloudClose:"Close",
-    cloudCreateLink:"Create a project on supabase.com →",
-    cloudConnected:"Connected.", cloudDisconnected:"Disconnected. Data stays saved only in this browser.",
-    cloudTesting:"Testing connection…",
-    cloudOkFound:"Connection successful (remote state found).", cloudOkEmpty:"Connection successful (empty table: first sync will create the record).",
-    cloudFail:"Connection failed. Check URL, anon key and that you ran the SQL script (see instructions).",
-    cloudEnter:"Enter URL and anon key.", cloudConnecting:"Connecting…", cloudSyncing:"Syncing…",
-    cloudSynced:"Synced. Permanent data, shared across devices.",
-    cloudFail2:"Connection failed. Check URL, anon key and that you ran the SQL script.",
   },
 };
 const t = (k, ...a) => { const v = I18N[LANG][k]; return typeof v === "function" ? v(...a) : v; };
@@ -82,114 +70,6 @@ const state = {
 let uid = 1;
 function nextId(){ return "c"+(uid++); }
 
-let supa = null;          // supabase client
-let supaConnected = false;
-let supaRow = null;       // cached remote row
-let syncTimer = null;
-let syncing = false;      // guard against pull/push recursion
-
-function localLoad(){
-  try{
-    const raw = localStorage.getItem(STORE_KEY);
-    if(raw){
-      const d = JSON.parse(raw);
-      state.colors = d.colors || [];
-      state.done = d.done || {};
-      uid = d.uid || (state.colors.reduce((m,c)=>Math.max(m,parseInt((c.id||"c1").slice(1))||1),1)+1);
-      return true;
-    }
-  }catch(e){ console.warn("load failed", e); }
-  return false;
-}
-function localSave(){
-  localStorage.setItem(STORE_KEY, JSON.stringify({colors:state.colors, done:state.done, uid}));
-}
-// ---------- persistence ----------
-function load(){
-  if(!localLoad()) seed();
-}
-function save(){
-  localSave();
-  scheduleCloudPush();
-}
-function seed(){
-  const palette = [
-    {name:"Bordeaux", rgb:[150,40,50]},
-    {name:"Zafferano", rgb:[214,150,40]},
-    {name:"Crema",    rgb:[238,222,188]},
-    {name:"Salvia",   rgb:[120,158,110]},
-    {name:"Lago",     rgb:[86,128,150]},
-    {name:"Prugna",   rgb:[120,78,120]},
-  ];
-  state.colors = palette.map(p=>({id:nextId(),name:p.name,r:p.rgb[0],g:p.rgb[1],b:p.rgb[2],enabled:true}));
-  localSave();
-}
-
-// ---------- Supabase ----------
-const SB_KEY = "grannySquares.supabase";
-const TABLE = "granny_state";
-const PK = "id";
-const ROW_ID = "single";
-
-function readCreds(){ try{ return JSON.parse(localStorage.getItem(SB_KEY) || "null"); }catch(e){ return null; } }
-function writeCreds(c){ if(c) localStorage.setItem(SB_KEY, JSON.stringify(c)); else localStorage.removeItem(SB_KEY); }
-function setCloudDot(s){
-  const dot=document.getElementById("cloudDot");
-  if(!dot) return;
-  dot.classList.toggle("on", s==="on"); dot.classList.toggle("err", s==="err");
-}
-async function connectSupabase(creds){
-  if(!window.supabase || !creds || !creds.url || !creds.key) return false;
-  try{
-    supa = window.supabase.createClient(creds.url, creds.key);
-    const { data, error } = await supa.from(TABLE).select("*").eq(PK, ROW_ID).maybeSingle();
-    if(error) throw error;
-    supaConnected = true; supaRow = data;
-    writeCreds(creds); setCloudDot("on");
-    return true;
-  }catch(e){
-    supaConnected=false; supa=null; setCloudDot("err");
-    return false;
-  }
-}
-function applyRemote(d){
-  if(!d || !d.data) return;
-  let r; try{ r = typeof d.data === "string" ? JSON.parse(d.data) : d.data; }catch(e){ return; }
-  if(!r || typeof r !== "object") return;
-  if(Array.isArray(r.colors)) state.colors = r.colors;
-  if(r.done && typeof r.done === "object") state.done = r.done;
-  if(typeof r.uid === "number") uid = r.uid;
-  localSave();
-}
-async function cloudPull(){
-  if(!supaConnected || !supa) return;
-  syncing = true;
-  try{
-    const { data, error } = await supa.from(TABLE).select("*").eq(PK, ROW_ID).maybeSingle();
-    if(error) throw error;
-    supaRow = data;
-    if(data && data.data){ applyRemote(data); renderColors(); renderCombos(); }
-  }catch(e){ console.warn("pull failed", e); setCloudDot("err"); }
-  finally{ syncing = false; }
-}
-async function cloudPush(){
-  if(!supaConnected || !supa) return;
-  if(syncing) return;
-  syncing = true;
-  try{
-    const payload = { colors: state.colors, done: state.done, uid };
-    const body = { [PK]: ROW_ID, data: payload, updated_at: new Date().toISOString() };
-    const { data, error } = await supa.from(TABLE).upsert(body).select().maybeSingle();
-    if(error) throw error;
-    supaRow = data; setCloudDot("on");
-  }catch(e){ console.warn("push failed", e); setCloudDot("err"); }
-  finally{ syncing = false; }
-}
-function scheduleCloudPush(){
-  if(!supaConnected) return;
-  clearTimeout(syncTimer);
-  syncTimer = setTimeout(cloudPush, 800);
-}
 
 // ---------- helpers ----------
 const active = ()=> state.colors.filter(c=>c.enabled);
@@ -422,51 +302,39 @@ function resetBtnHandler(){
 }
 document.getElementById("resetBtn").addEventListener("click",resetBtnHandler);
 
-// ---------- cloud modal ----------
-function cloudStatus(msg, kind){
-  const s=document.getElementById("cloudStatus");
-  s.textContent=msg||""; s.className="status"+(kind?" "+kind:"");
+// ---------- export / import ----------
+function exportData(){
+  const data={colors:state.colors, done:state.done, uid, __app:"grannySquares", __v:1};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  const ts=new Date().toISOString().slice(0,10);
+  a.href=url; a.download="granny-square-"+ts+".json";
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
 }
-document.getElementById("cloudBtn").addEventListener("click",()=>{
-  const c=readCreds();
-  if(c){ document.getElementById("sbUrl").value=c.url; document.getElementById("sbKey").value=c.key; }
-  cloudStatus(supaConnected?t("cloudConnected"):"", supaConnected?"ok":"");
-  document.getElementById("cloudOverlay").classList.add("show");
-});
-document.getElementById("cloudClose").addEventListener("click",()=>{
-  document.getElementById("cloudOverlay").classList.remove("show");
-});
-document.getElementById("cloudOverlay").addEventListener("click",e=>{
-  if(e.target.id=="cloudOverlay") document.getElementById("cloudOverlay").classList.remove("show");
-});
-document.getElementById("cloudClear").addEventListener("click",()=>{
-  writeCreds(null); supa=null; supaConnected=false; supaRow=null; setCloudDot("");
-  cloudStatus(t("cloudDisconnected"), "");
-});
-document.getElementById("cloudTest").addEventListener("click",async()=>{
-  const url=document.getElementById("sbUrl").value.trim();
-  const key=document.getElementById("sbKey").value.trim();
-  cloudStatus(t("cloudTesting"), "");
-  const ok=await connectSupabase({url,key});
-  if(ok){
-    cloudStatus(supaRow && supaRow.data ? t("cloudOkFound") : t("cloudOkEmpty"), "ok");
-  } else {
-    cloudStatus(t("cloudFail"), "err");
-  }
-});
-document.getElementById("cloudSave").addEventListener("click",async()=>{
-  const url=document.getElementById("sbUrl").value.trim();
-  const key=document.getElementById("sbKey").value.trim();
-  if(!url||!key){ cloudStatus(t("cloudEnter"), "err"); return; }
-  cloudStatus(t("cloudConnecting"), "");
-  const ok=await connectSupabase({url,key});
-  if(!ok){ cloudStatus(t("cloudFail2"), "err"); return; }
-  cloudStatus(t("cloudSyncing"), "");
-  await cloudPull();
-  await cloudPush();
-  cloudStatus(t("cloudSynced"), "ok");
-  renderColors(); renderCombos();
-  setTimeout(()=>document.getElementById("cloudOverlay").classList.remove("show"), 900);
+function importData(file){
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const d=JSON.parse(reader.result);
+      if(!d || !Array.isArray(d.colors) || typeof d.done!="object") throw new Error();
+      state.colors=d.colors; state.done=d.done;
+      uid=d.uid || (state.colors.reduce((m,c)=>Math.max(m,parseInt((c.id||"c1").slice(1))||1),1)+1);
+      localSave();
+      state.page=0; state.filter="all";
+      document.querySelectorAll(".filter").forEach(x=>x.classList.toggle("active",x.dataset.f=="all"));
+      renderColors(); renderCombos();
+    }catch(e){ alert(t("importFail")); }
+  };
+  reader.readAsText(file);
+}
+document.getElementById("exportBtn").addEventListener("click",exportData);
+document.getElementById("importBtn").addEventListener("click",()=>document.getElementById("importFile").click());
+document.getElementById("importFile").addEventListener("change",e=>{
+  const f=e.target.files[0];
+  if(f) importData(f);
+  e.target.value="";
 });
 
 // ---------- init ----------
@@ -483,10 +351,3 @@ document.getElementById("langSwitch").addEventListener("click",e=>{
   applyLang();
   renderColors(); renderCombos();
 });
-(async()=>{
-  const c=readCreds();
-  if(c){
-    const ok=await connectSupabase(c);
-    if(ok){ await cloudPull(); renderColors(); renderCombos(); }
-  }
-})();

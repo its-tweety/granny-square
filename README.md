@@ -2,6 +2,8 @@
 
 Webapp per generare tutte le combinazioni cromatiche dei giri di un granny square all'uncinetto, con un colore per giro e gestione dei completati.
 
+Questo branch (`public`) è la versione semplificata, senza backend: i dati restano nel browser e si possono trasferire tra dispositivi esportando/importando un file.
+
 ## Struttura del progetto
 
 ```
@@ -11,7 +13,7 @@ Webapp per generare tutte le combinazioni cromatiche dei giri di un granny squar
 │   ├── css/
 │   │   └── style.css   # stili (palette, layout, responsive, componenti)
 │   └── js/
-│       └── app.js     # logica (stato, persistenza, permutazioni, sync, i18n, render)
+│       └── app.js     # logica (stato, persistenza, permutazioni, i18n, render, import/export)
 ├── .gitignore
 └── README.md
 ```
@@ -24,33 +26,21 @@ Nessun build, nessuna dipendenza locale: HTML statico + CSS + JS vanilla. Apri `
 - Attivazione/disattivazione temporanea dei colori: i giri si ricalcolano sui colori attivi, i completati restano salvati
 - Combinazioni come permutazioni dei colori attivi, visualizzate a quadrati concentrici
 - Registrazione dei granny square completati, anche con colori disattivati
-- Filtri (tutte / da fare / completate) e paginazione configurabile
-- Sincronizzazione cloud opzionale via Supabase
+- Filtri (tutti / da fare / completati) e paginazione configurabile
+- Interfaccia bilingue IT/EN
+- Esportazione/importazione dei dati su file (backup e trasferimento tra dispositivi)
 
-## Sincronizzazione cloud (Supabase)
+## Memoria e trasferimento dati
 
-Per dati permanenti e condivisi tra dispositivi.
+I dati (colori e completati) sono salvati nel browser (`localStorage`). Per trasferirli su un altro dispositivo o farne un backup:
 
-### 1. Progetto
+- **Esporta**: pulsante *Esporta* in alto a destra → scarica un file `granny-square-<data>.json`.
+- **Importa**: pulsante *Importa* → seleziona un file `.json` esportato in precedenza. I dati correnti vengono sostituiti.
 
-Crea un progetto su [supabase.com](https://supabase.com), quindi in **Project Settings → API** copia **Project URL** e **Publishable key** (l'anon key).
+Il file è testo JSON leggibile; contiene colori, completati e identificativi.
 
-### 2. Tabella
+## Pubblicazione (GitHub Pages)
 
-In **SQL Editor**, esegui:
-
-```sql
-create table if not exists granny_state (
-  id text primary key,
-  data jsonb,
-  updated_at timestamptz default now()
-);
-
-alter table granny_state enable row level security;
-create policy "public read"  on granny_state for select using (true);
-create policy "public write" on granny_state for all    using (true) with check (true);
-```
-
-### 3. Connessione
-
-Nell'app, pulsante **Cloud**: inserisci Project URL e Publishable key, quindi **Connetti**. Le modifiche si sincronizzano automaticamente; le credenziali restano nel browser.
+1. <https://github.com/its-tweety/granny-square/settings/pages>
+2. **Source → branch `public` / root → Save**
+3. <https://its-tweety.github.io/granny-square/> (dal branch selezionato)
