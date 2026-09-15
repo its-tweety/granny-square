@@ -353,7 +353,7 @@ function importData(file){
   reader.onload=()=>{
     try{
       const d=JSON.parse(reader.result);
-      if(!d || !Array.isArray(d.colors) || typeof d.done!="object") throw new Error();
+      if(!d || !Array.isArray(d.colors) || !d.done || typeof d.done!="object") throw new Error();
       state.colors=d.colors; state.done=d.done;
       uid=d.uid || (state.colors.reduce((m,c)=>Math.max(m,parseInt((c.id||"c1").slice(1))||1),1)+1);
       localSave();
