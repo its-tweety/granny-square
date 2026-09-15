@@ -2,6 +2,22 @@
 
 Webapp per generare tutte le combinazioni cromatiche dei giri di un granny square all'uncinetto, con un colore per giro e gestione dei completati.
 
+## Struttura del progetto
+
+```
+.
+├── index.html          # markup, referenzia CSS e JS
+├── assets/
+│   ├── css/
+│   │   └── style.css   # stili (palette, layout, responsive, componenti)
+│   └── js/
+│       └── app.js     # logica (stato, persistenza, permutazioni, sync, i18n, render)
+├── .gitignore
+└── README.md
+```
+
+Nessun build, nessuna dipendenza locale: HTML statico + CSS + JS vanilla. Apri `index.html` nel browser o pubblica su GitHub Pages.
+
 ## Caratteristiche
 
 - Colori RGB: aggiunta, modifica, eliminazione
